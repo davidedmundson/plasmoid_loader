@@ -38,7 +38,7 @@ set(FOO_SOURCES
     proxytoplevel.cpp
     proxypopup.cpp)
 add_library(compositorplugin ${FOO_SOURCES})
-target_link_libraries(compositorplugin Qt5::Gui Qt5::Quick KF5::WaylandServer KF5::WindowSystem)
+target_link_libraries(compositorplugin Qt5::Gui Qt5::Quick KF5::WaylandServer KF5::WaylandClient KF5::WindowSystem)
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 

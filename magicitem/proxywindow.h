@@ -1,5 +1,5 @@
 #pragma once
-#include <QObject>
+#include <QQuickWindow>
 
 namespace KWayland {
 namespace  Server {
@@ -9,6 +9,8 @@ class ShellSurfaceInterface; //TODO XDG
 }
 }
 
+class SurfaceItem;
+
 /**
  * This class is repsonsible for proxying all events from a surface to a new window
  *
@@ -16,12 +18,12 @@ class ShellSurfaceInterface; //TODO XDG
  *
  */
 
-class ProxyWindow: public QObject
+class ProxyWindow: public QQuickWindow
 {
     Q_OBJECT
 public:
-    ProxyWindow(KWayland::Server::ShellSurfaceInterface *ssi, QObject *parent);
+    ProxyWindow(KWayland::Server::ShellSurfaceInterface *ssi);
 
 private:
-    KWayland::Server::ShellSurfaceInterface *m_ssi;
+    SurfaceItem *m_surface;
 };

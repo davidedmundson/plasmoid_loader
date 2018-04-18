@@ -8,14 +8,8 @@
 #include <KWayland/Server/datadevicemanager_interface.h>
 #include <KWayland/Server/server_decoration_interface.h>
 
-#include <KWayland/Client/compositor.h>
-#include <KWayland/Client/shell.h>
-#include <KWayland/Client/seat.h>
-#include <KWayland/Client/shm_pool.h>
-#include <KWayland/Client/registry.h>
-#include <KWayland/Client/connection_thread.h>
-
 #include <QApplication>
+#include <QThread>
 
 #include "proxywindow.h"
 
@@ -29,21 +23,6 @@ Compositor* Compositor::self() {
 
 
 Compositor::Compositor() {
-    //setup client stuff
-    m_compositor = Client::Compositor::fromApplication(qApp);
-    m_connectionThread = Client::ConnectionThread::fromApplication(qApp);
-    Client::Registry registry;
-    registry.create(m_connectionThread);
-    registry.setup();
-    connect(&registry, &Client::Registry::interfaceAnnounced, this, [this, &registry]() {
-        Client::Registry::AnnouncedInterface t;
-
-        t = registry.interface(Client::Registry::Interface::Seat);
-        m_seat = registry.createSeat(t.name, t.version);
-
-    });
-    m_connectionThread->roundtrip();
-
     //setup server stuff
     auto displayIface = new Server::Display(this);
     displayIface->setSocketName(QString("plasma0"));
@@ -69,9 +48,11 @@ Compositor::Compositor() {
 
     connect(shellIface, &Server::ShellInterface::surfaceCreated, this, [this](Server::ShellSurfaceInterface *ssi) {
         if (!m_hack) {
+            qDebug() << "new embed";
             emit newSurface(ssi);
         }
-        new ProxyWindow(ssi, this);
+        qDebug() << "new proxy";
+        new ProxyWindow(ssi); //responsible for deleting itself kjob style
     });
 
     compositorIface->create();
