@@ -14,10 +14,12 @@ class ShellSurfaceInterface; //TODO XDG
 }
 }
 
+#include "compositor.h"
+
 /*
  * Renders a surface as a QQuickItem
  */
-class SurfaceItem : public QQuickPaintedItem
+class SurfaceItem : public QQuickPaintedItem, public Container
 {
     Q_OBJECT
 public:
@@ -27,6 +29,12 @@ public:
 
     void setSurface(KWayland::Server::ShellSurfaceInterface *surface);
     QPointer<KWayland::Server::SeatInterface> m_seat;
+
+    QWindow *containerWindow() override;
+    QPoint adjustContainerOffset(const QPoint &point) const override;
+
+signals:
+    void hasBufferChanged(bool hasBuffer);
 protected:
     virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
     virtual void hoverMoveEvent(QHoverEvent *event) override;
@@ -39,6 +47,6 @@ protected:
     QPointer<KWayland::Server::SurfaceInterface> m_si;
     QPointer<KWayland::Server::ShellSurfaceInterface> m_ssi;
 private:
-    QImage m_image;
+    bool m_hasBuffer = false;
     QElapsedTimer m_timer;
 };

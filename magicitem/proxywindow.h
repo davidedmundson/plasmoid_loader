@@ -1,6 +1,8 @@
 #pragma once
 #include <QQuickWindow>
 
+#include "compositor.h"
+
 namespace KWayland {
 namespace  Server {
 class SeatInterface;
@@ -18,12 +20,13 @@ class SurfaceItem;
  *
  */
 
-class ProxyWindow: public QQuickWindow
+class ProxyWindow: public QQuickWindow, public Container
 {
     Q_OBJECT
 public:
     ProxyWindow(KWayland::Server::ShellSurfaceInterface *ssi);
-
+    QWindow* containerWindow() override;
+    QPoint adjustContainerOffset(const QPoint &offset) const override;
 private:
     SurfaceItem *m_surface;
 };

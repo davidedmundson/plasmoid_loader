@@ -10,6 +10,7 @@
 #include <KWindowSystem>
 
 #include <QPainter>
+#include <QQuickWindow>
 
 #include "compositor.h"
 
@@ -29,27 +30,63 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
     m_seat->setFocusedKeyboardSurface(si);
 
     m_si = si;
-    m_ssi->requestSize(QSize(width(), height()));
+    m_ssi->requestSize(QSize(width(),height()));
+
+    connect(si, &SurfaceInterface::unmapped, this, [si, this]() {
+        m_hasBuffer = false;
+        qDebug() << "unmapped";
+        emit hasBufferChanged(m_hasBuffer);
+    });
+
+    connect(si, &SurfaceInterface::unbound, this, [si, this]() {
+        m_hasBuffer = false;
+        qDebug() << "unbound";
+        emit hasBufferChanged(m_hasBuffer);
+    });
+    connect(si, &SurfaceInterface::destroyed, this, [si, this]() {
+        m_hasBuffer = false;
+        qDebug() << "destroyed";
+        emit hasBufferChanged(m_hasBuffer);
+    });
+
 
     connect(si, &SurfaceInterface::damaged, this, [si, this]() {
         m_timer.restart();
         if (!si->buffer()) {
-            m_image = QImage();
+            m_hasBuffer = false;
+            emit hasBufferChanged(m_hasBuffer);
             update();
         }
-        m_image = QImage(); //free image that is now transferred. TODO front/back?
-        m_image = si->buffer()->data();
+        m_hasBuffer = true;
+        emit hasBufferChanged(m_hasBuffer);
+        qDebug() << "setting size to " << si->buffer()->size();
+        setWidth(si->buffer()->size().width());
+        setHeight(si->buffer()->size().height());
+        emit widthChanged();
+
         si->resetTrackedDamage();
         update();
-        qDebug() << m_image.size();
+    });
+
+    connect(this, &QQuickItem::activeFocusChanged, this, [this, si](bool activeFocus) {
+        //DAVE - need to move this more globally to handle no-one having focus
+        if (activeFocus) {
+            m_seat->setFocusedKeyboardSurface(si);
+            m_seat->setFocusedPointerSurface(si);
+            qDebug() << "focus lost";
+        }
     });
 }
 
 void SurfaceItem::paint(QPainter *painter)
 {
-    painter->drawImage(0, 0, m_image);
-    if (m_si)
+    if (m_si  && m_si->buffer()) {
+        qDebug() << "painting";
+        QImage image = m_si->buffer()->data();
+        qDebug() << this << image.size();
+        painter->drawImage(0, 0, image);
         m_si->frameRendered(m_timer.elapsed());
+    }
 }
 
 void SurfaceItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
@@ -63,28 +100,36 @@ void SurfaceItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGe
 
 void SurfaceItem::hoverMoveEvent(QHoverEvent *event)
 {
-    if (!m_seat) return;
+    if (!m_seat || !hasActiveFocus()) return;
+
     m_seat->setTimestamp(event->timestamp());
     m_seat->setPointerPos(event->pos());
 }
 
+static bool pressed=false;
+
 void SurfaceItem::mousePressEvent(QMouseEvent *event)
 {
-    if (!m_seat) return;
+    if (!m_seat || !hasActiveFocus()) return;
     m_seat->setTimestamp(event->timestamp());
     m_seat->setPointerPos(event->pos());
-    m_seat->pointerButtonPressed(event->button());
+    if (!pressed)
+        m_seat->pointerButtonPressed(event->button());
+    pressed=true;
 }
 
 void SurfaceItem::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (!m_seat) return;
+    if (!m_seat || !hasActiveFocus()) return;
     m_seat->setTimestamp(event->timestamp());
-    m_seat->pointerButtonReleased(event->button());
+    if (pressed)
+        m_seat->pointerButtonReleased(event->button());
+    pressed=false;
 }
 
 void SurfaceItem::keyPressEvent(QKeyEvent *event)
 {
+    if (!m_seat || !hasActiveFocus()) return;
     const int magicOffset = KWindowSystem:: isPlatformX11() ? 8 : 0;
     m_seat->setTimestamp(event->timestamp());
     m_seat->keyPressed(event->nativeScanCode() - magicOffset);
@@ -92,8 +137,7 @@ void SurfaceItem::keyPressEvent(QKeyEvent *event)
 
 void SurfaceItem::keyReleaseEvent(QKeyEvent *event)
 {
-    //obvious bug alert? - what if the key is released whilst this QQuickItem doesn't have focus?
-    if (!m_seat) return;
+    if (!m_seat || !hasActiveFocus()) return;
     const int magicOffset = KWindowSystem:: isPlatformX11() ? 8 : 0;
     m_seat->setTimestamp(event->timestamp());
     m_seat->keyReleased(event->nativeScanCode() - magicOffset);
@@ -118,6 +162,7 @@ SurfaceItem::SurfaceItem(QQuickItem *parent):
 SurfaceItem::~SurfaceItem()
 {
 }
+
 void SurfaceItem::wheelEvent(QWheelEvent *event)
 {
     m_seat->setTimestamp(event->timestamp());
@@ -128,4 +173,14 @@ void SurfaceItem::wheelEvent(QWheelEvent *event)
     if (angle.y() != 0) {
         m_seat->pointerAxis(Qt::Vertical, -angle.y() * 120);
     }
+}
+
+QWindow *SurfaceItem::containerWindow()
+{
+    return this->window();
+}
+
+QPoint SurfaceItem::adjustContainerOffset(const QPoint &point) const
+{
+    return this->mapToGlobal(point).toPoint();
 }

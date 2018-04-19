@@ -21,7 +21,6 @@ Compositor* Compositor::self() {
     return s_instance;
 }
 
-
 Compositor::Compositor() {
     //setup server stuff
     auto displayIface = new Server::Display(this);
@@ -50,6 +49,9 @@ Compositor::Compositor() {
         if (!m_hack) {
             qDebug() << "new embed";
             emit newSurface(ssi);
+            m_hack = true;
+
+            return;
         }
         qDebug() << "new proxy";
         new ProxyWindow(ssi); //responsible for deleting itself kjob style
@@ -61,7 +63,24 @@ Compositor::Compositor() {
     dataIface->create();
 }
 
+
+
 Server::SeatInterface *Compositor::seatInterface()
 {
     return m_seatIface;
 }
+
+Container *Compositor::findContainer(Server::SurfaceInterface *si)
+{
+    return m_windows[si];
+}
+
+void Compositor::registerContainer(Container *container, KWayland::Server::SurfaceInterface *si)
+{
+    m_windows[si] = container;
+}
+
+
+
+Container::Container(){}
+Container::~Container(){}

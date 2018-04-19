@@ -34,9 +34,7 @@ set(FOO_SOURCES
     main.cpp
     compositor.cpp
     embeddedwindow.cpp
-    proxywindow.cpp
-    proxytoplevel.cpp
-    proxypopup.cpp)
+    proxywindow.cpp)
 add_library(compositorplugin ${FOO_SOURCES})
 target_link_libraries(compositorplugin Qt5::Gui Qt5::Quick KF5::WaylandServer KF5::WaylandClient KF5::WindowSystem)
 
