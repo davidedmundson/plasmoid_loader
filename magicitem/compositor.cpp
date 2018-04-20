@@ -12,6 +12,7 @@
 #include <QThread>
 
 #include "proxywindow.h"
+#include "embeddedwindow.h"
 
 using namespace KWayland;
 
@@ -27,6 +28,7 @@ Compositor::Compositor() {
     displayIface->setSocketName(QString("plasma0"));
     displayIface->start();
     displayIface->createShm();
+    SurfaceItem::initialiseDisplay(displayIface);
 
     auto shellIface = displayIface->createShell(displayIface);
     auto compositorIface = displayIface->createCompositor(this);
@@ -41,7 +43,8 @@ Compositor::Compositor() {
     outputIface->create();
 
     m_seatIface = displayIface->createSeat(displayIface);
-    m_seatIface->setHasKeyboard(true);
+//    m_seatIface->setHasKeyboard(true);
+//    m_seatIface->setKeymap(); //DAVE, boring TODO
     m_seatIface->setHasPointer(true);
     auto dataIface = displayIface->createDataDeviceManager(displayIface);
 
@@ -62,8 +65,6 @@ Compositor::Compositor() {
     shellIface->create();
     dataIface->create();
 }
-
-
 
 Server::SeatInterface *Compositor::seatInterface()
 {

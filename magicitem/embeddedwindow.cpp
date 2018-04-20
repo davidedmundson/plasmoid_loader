@@ -11,16 +11,58 @@
 
 #include <QPainter>
 #include <QQuickWindow>
+#include <QOpenGLWindow>
+#include <QOpenGLFunctions>
+#include <QGuiApplication>
+#include <QtX11Extras/QX11Info>
 
 #include "compositor.h"
+#include <qpa/qplatformnativeinterface.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 
 using namespace KWayland::Server;
+
+//maybe we mod QtWayland to cover this case.. it already has all this nonsense
+
+typedef GLboolean(*eglBindWaylandDisplayWL_func)(EGLDisplay dpy, wl_display *display);
+typedef GLboolean(*eglQueryWaylandBufferWL_func)(EGLDisplay dpy, struct wl_resource *buffer, EGLint attribute, EGLint *value);
+typedef EGLImageKHR (*eglCreateImageKHR_func) (EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
+
+#ifndef EGL_WAYLAND_BUFFER_WL
+#define EGL_WAYLAND_BUFFER_WL                   0x31D5
+#endif
+#ifndef EGL_WAYLAND_PLANE_WL
+#define EGL_WAYLAND_PLANE_WL                    0x31D6
+#endif
+#ifndef EGL_WAYLAND_Y_INVERTED_WL
+#define EGL_WAYLAND_Y_INVERTED_WL               0x31DB
+#endif
+
+
+
+EGLDisplay display()
+{
+//    auto d = static_cast<EGLDisplay*>(qApp->platformNativeInterface()->nativeResourceForIntegration("egldisplay"));
+    auto d = eglGetDisplay(QX11Info::display());
+    return d;
+}
+
+void SurfaceItem::initialiseDisplay(KWayland::Server::Display *displayiFace) {
+    auto d = display();
+    eglInitialize(d, NULL, NULL);
+    auto eglBindWaylandDisplayWL = (eglBindWaylandDisplayWL_func)eglGetProcAddress("eglBindWaylandDisplayWL");
+    qDebug() << "DAVE" << d << eglBindWaylandDisplayWL;
+    eglBindWaylandDisplayWL(d, displayiFace);
+    displayiFace->setEglDisplay(d);
+}
 
 void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
 {
     if (m_ssi) {
         //goal here is to only cope with one window.
-        //if some muppet is sending two, that's their problem.
+        //if some muppet sets two, that's their problem.
         return;
     }
     m_ssi = ssi;
@@ -64,7 +106,30 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
         setHeight(si->buffer()->size().height());
         emit widthChanged();
 
-        si->resetTrackedDamage();
+        qDebug() << "DAMAGE";
+
+        //dave once
+//        auto eglQueryWaylandBufferWL = (eglQueryWaylandBufferWL_func)eglGetProcAddress("eglQueryWaylandBufferWL");
+//        auto eglCreateImageKHR = (eglCreateImageKHR_func)eglGetProcAddress("eglCreateImageKHR");
+
+        //in updates
+//        glGenTextures(1, &m_texture);
+        //then create QSGTexture
+
+//        const EGLint attribs[] = {
+//            EGL_WAYLAND_PLANE_WL, 0,
+//            EGL_NONE
+//        };
+//        EGLImageKHR image = eglCreateImageKHR(display(), EGL_NO_CONTEXT, EGL_WAYLAND_BUFFER_WL,
+//                                              (EGLClientBuffer)si->buffer()->resource(), attribs);
+
+//        glBindTexture(GL_TEXTURE_2D, m_texture);
+//        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)image);
+//        si->resetTrackedDamage();
+
+
         update();
     });
 

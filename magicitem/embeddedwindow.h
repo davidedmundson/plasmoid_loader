@@ -11,6 +11,7 @@ namespace  Server {
 class SeatInterface;
 class SurfaceInterface;
 class ShellSurfaceInterface; //TODO XDG
+class Display;
 }
 }
 
@@ -33,6 +34,8 @@ public:
     QWindow *containerWindow() override;
     QPoint adjustContainerOffset(const QPoint &point) const override;
 
+
+    static void initialiseDisplay(KWayland::Server::Display *display);
 signals:
     void hasBufferChanged(bool hasBuffer);
 protected:
@@ -49,4 +52,6 @@ protected:
 private:
     bool m_hasBuffer = false;
     QElapsedTimer m_timer;
+    QSize m_size;
+    int m_texture = 0;
 };
