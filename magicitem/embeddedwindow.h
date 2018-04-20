@@ -20,13 +20,13 @@ class Display;
 /*
  * Renders a surface as a QQuickItem
  */
-class SurfaceItem : public QQuickPaintedItem, public Container
+class SurfaceItem : public QQuickItem, public Container
 {
     Q_OBJECT
 public:
     SurfaceItem(QQuickItem *parent=0);
     ~SurfaceItem();
-    virtual void paint(QPainter *painter) override; //this sucks, do it properly with GL too, see QtQuick wayland and your demo
+//    virtual void paint(QPainter *painter) override; //this sucks, do it properly with GL too, see QtQuick wayland and your demo
 
     void setSurface(KWayland::Server::ShellSurfaceInterface *surface);
     QPointer<KWayland::Server::SeatInterface> m_seat;
@@ -34,6 +34,7 @@ public:
     QWindow *containerWindow() override;
     QPoint adjustContainerOffset(const QPoint &point) const override;
 
+    QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
 
     static void initialiseDisplay(KWayland::Server::Display *display);
 signals:
@@ -51,6 +52,7 @@ protected:
     QPointer<KWayland::Server::ShellSurfaceInterface> m_ssi;
 private:
     bool m_hasBuffer = false;
+    QImage m_image;
     QElapsedTimer m_timer;
     QSize m_size;
     int m_texture = 0;

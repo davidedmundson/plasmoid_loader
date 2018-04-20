@@ -9,12 +9,13 @@
 #include <KWayland/Server/server_decoration_interface.h>
 #include <KWindowSystem>
 
-#include <QPainter>
 #include <QQuickWindow>
 #include <QOpenGLWindow>
 #include <QOpenGLFunctions>
 #include <QGuiApplication>
 #include <QtX11Extras/QX11Info>
+
+#include <QSGSimpleTextureNode>
 
 #include "compositor.h"
 #include <qpa/qplatformnativeinterface.h>
@@ -54,8 +55,8 @@ void SurfaceItem::initialiseDisplay(KWayland::Server::Display *displayiFace) {
     eglInitialize(d, NULL, NULL);
     auto eglBindWaylandDisplayWL = (eglBindWaylandDisplayWL_func)eglGetProcAddress("eglBindWaylandDisplayWL");
     qDebug() << "DAVE" << d << eglBindWaylandDisplayWL;
-    eglBindWaylandDisplayWL(d, displayiFace);
-    displayiFace->setEglDisplay(d);
+//    eglBindWaylandDisplayWL(d, *displayiFace);
+//    displayiFace->setEglDisplay(d);
 }
 
 void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
@@ -92,7 +93,7 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
     });
 
 
-    connect(si, &SurfaceInterface::damaged, this, [si, this]() {
+    connect(si, &SurfaceInterface::damaged, this, [si, this](const QRegion &r) {
         m_timer.restart();
         if (!si->buffer()) {
             m_hasBuffer = false;
@@ -106,7 +107,12 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
         setHeight(si->buffer()->size().height());
         emit widthChanged();
 
-        qDebug() << "DAMAGE";
+        m_size = si->buffer()->size();
+        if (si->buffer()->shmBuffer()) {
+            m_image = si->buffer()->data().copy(); // I don't get why, but the buffer iface is guarded with a singleton
+        } else {
+            m_image = QImage();
+
 
         //dave once
 //        auto eglQueryWaylandBufferWL = (eglQueryWaylandBufferWL_func)eglGetProcAddress("eglQueryWaylandBufferWL");
@@ -127,6 +133,7 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
 //        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 //        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 //        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)image);
+        }
 //        si->resetTrackedDamage();
 
 
@@ -143,15 +150,36 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
     });
 }
 
-void SurfaceItem::paint(QPainter *painter)
+//void SurfaceItem::paint(QPainter *painter)
+//{
+//    if (m_si  && m_si->buffer()) {
+//        qDebug() << "painting";
+//        QImage image = m_si->buffer()->data();
+//        qDebug() << this << image.size();
+//        painter->drawImage(0, 0, image);
+//        m_si->frameRendered(m_timer.elapsed());
+//    }
+//}
+
+QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
 {
-    if (m_si  && m_si->buffer()) {
-        qDebug() << "painting";
-        QImage image = m_si->buffer()->data();
-        qDebug() << this << image.size();
-        painter->drawImage(0, 0, image);
-        m_si->frameRendered(m_timer.elapsed());
+    if (!m_si || ! m_si->buffer()) {
+        delete oldNode;
+        return nullptr;
     }
+    auto  currentNode = static_cast<QSGSimpleTextureNode*>(oldNode);
+    if (!currentNode) {
+        currentNode = new QSGSimpleTextureNode();
+    }
+    QSGTexture *source = window()->createTextureFromImage(m_image);
+    source->setFiltering(QSGTexture::Linear);
+    currentNode->setTexture(source);
+    currentNode->setOwnsTexture(true);
+
+    const QRect destRect(QPointF(boundingRect().center() - QPointF(m_size.width(), m_size.height()) / 2).toPoint(), m_size);
+    currentNode->setRect(destRect);
+
+    return currentNode;
 }
 
 void SurfaceItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
@@ -214,11 +242,12 @@ void SurfaceItem::keyReleaseEvent(QKeyEvent *event)
 //}
 
 SurfaceItem::SurfaceItem(QQuickItem *parent):
-    QQuickPaintedItem(parent)
+    QQuickItem(parent)
 {
     setAcceptedMouseButtons(Qt::AllButtons);
     setAcceptHoverEvents(true);
     setActiveFocusOnTab(true);
+    setFlag(ItemHasContents);
 
     Compositor::self(); //start compositor if it's not already
     connect(Compositor::self(), &Compositor::newSurface, this, &SurfaceItem::setSurface);
