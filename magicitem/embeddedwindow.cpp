@@ -149,8 +149,8 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
         auto image = b->data();;
         glBindTexture( GL_TEXTURE_2D, newTexture);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_image.size().width(), m_image.size().height(), 0,
-                GL_BGRA, GL_UNSIGNED_BYTE, m_image.bits());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.size().width(), image.size().height(), 0,
+                GL_BGRA, GL_UNSIGNED_BYTE, image.bits());
     } else {
         //      TODO only lookup once
        auto eglQueryWaylandBufferWL = (eglQueryWaylandBufferWL_func)eglGetProcAddress("eglQueryWaylandBufferWL");
