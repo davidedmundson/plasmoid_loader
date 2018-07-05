@@ -45,6 +45,7 @@ typedef EGLImageKHR (*eglCreateImageKHR_func) (EGLDisplay dpy, EGLContext ctx, E
 
 EGLDisplay display()
 {
+    //TODO runtime
    auto d = static_cast<EGLDisplay*>(qApp->platformNativeInterface()->nativeResourceForIntegration("egldisplay"));
 //     auto d = eglGetDisplay(QX11Info::display());
     return d;
@@ -108,19 +109,9 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
         emit widthChanged();
 
         m_size = si->buffer()->size();
-        if (si->buffer()->shmBuffer()) {
-            qDebug() << "DAVE!!!";
-
-            m_image = si->buffer()->data().copy(); // I don't get why, but the buffer iface is guarded with a singleton silly thing
-
-            update();
-        } else {
-            m_image = QImage();
-            update();
-        }
+        update();
 
        si->resetTrackedDamage();
-
 
         update();
     });

@@ -52,7 +52,6 @@ protected:
     QPointer<KWayland::Server::ShellSurfaceInterface> m_ssi;
 private:
     bool m_hasBuffer = false;
-    QImage m_image;
     QElapsedTimer m_timer;
     QSize m_size;
 };
