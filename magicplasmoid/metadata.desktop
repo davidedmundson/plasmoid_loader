@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=Davemoid
+Name=Embed
 Comment=Shows RSS Feeds
 Encoding=UTF-8
 Icon=applications-rss
@@ -10,7 +10,7 @@ X-KDE-PluginInfo-Depends=
 X-KDE-PluginInfo-Email=davidedmundson@kde.org
 X-KDE-PluginInfo-EnabledByDefault=true
 X-KDE-PluginInfo-License=LGPL
-X-KDE-PluginInfo-Name=org.example.davemoid
+X-KDE-PluginInfo-Name=org.example.davemoid2
 X-KDE-PluginInfo-Version=1.0
 X-KDE-PluginInfo-Website=http://techbase.kde.org
 X-Plasma-API=declarativeappletscript

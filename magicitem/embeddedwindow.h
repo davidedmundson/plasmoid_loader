@@ -55,5 +55,4 @@ private:
     QImage m_image;
     QElapsedTimer m_timer;
     QSize m_size;
-    int m_texture = 0;
 };

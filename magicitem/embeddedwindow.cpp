@@ -45,8 +45,8 @@ typedef EGLImageKHR (*eglCreateImageKHR_func) (EGLDisplay dpy, EGLContext ctx, E
 
 EGLDisplay display()
 {
-//    auto d = static_cast<EGLDisplay*>(qApp->platformNativeInterface()->nativeResourceForIntegration("egldisplay"));
-    auto d = eglGetDisplay(QX11Info::display());
+   auto d = static_cast<EGLDisplay*>(qApp->platformNativeInterface()->nativeResourceForIntegration("egldisplay"));
+//     auto d = eglGetDisplay(QX11Info::display());
     return d;
 }
 
@@ -55,8 +55,8 @@ void SurfaceItem::initialiseDisplay(KWayland::Server::Display *displayiFace) {
     eglInitialize(d, NULL, NULL);
     auto eglBindWaylandDisplayWL = (eglBindWaylandDisplayWL_func)eglGetProcAddress("eglBindWaylandDisplayWL");
     qDebug() << "DAVE" << d << eglBindWaylandDisplayWL;
-//    eglBindWaylandDisplayWL(d, *displayiFace);
-//    displayiFace->setEglDisplay(d);
+   eglBindWaylandDisplayWL(d, *displayiFace);
+   displayiFace->setEglDisplay(d);
 }
 
 void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
@@ -109,32 +109,17 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
 
         m_size = si->buffer()->size();
         if (si->buffer()->shmBuffer()) {
-            m_image = si->buffer()->data().copy(); // I don't get why, but the buffer iface is guarded with a singleton
+            qDebug() << "DAVE!!!";
+
+            m_image = si->buffer()->data().copy(); // I don't get why, but the buffer iface is guarded with a singleton silly thing
+
+            update();
         } else {
             m_image = QImage();
-
-
-        //dave once
-//        auto eglQueryWaylandBufferWL = (eglQueryWaylandBufferWL_func)eglGetProcAddress("eglQueryWaylandBufferWL");
-//        auto eglCreateImageKHR = (eglCreateImageKHR_func)eglGetProcAddress("eglCreateImageKHR");
-
-        //in updates
-//        glGenTextures(1, &m_texture);
-        //then create QSGTexture
-
-//        const EGLint attribs[] = {
-//            EGL_WAYLAND_PLANE_WL, 0,
-//            EGL_NONE
-//        };
-//        EGLImageKHR image = eglCreateImageKHR(display(), EGL_NO_CONTEXT, EGL_WAYLAND_BUFFER_WL,
-//                                              (EGLClientBuffer)si->buffer()->resource(), attribs);
-
-//        glBindTexture(GL_TEXTURE_2D, m_texture);
-//        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)image);
+            update();
         }
-//        si->resetTrackedDamage();
+
+       si->resetTrackedDamage();
 
 
         update();
@@ -150,34 +135,63 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
     });
 }
 
-//void SurfaceItem::paint(QPainter *painter)
-//{
-//    if (m_si  && m_si->buffer()) {
-//        qDebug() << "painting";
-//        QImage image = m_si->buffer()->data();
-//        qDebug() << this << image.size();
-//        painter->drawImage(0, 0, image);
-//        m_si->frameRendered(m_timer.elapsed());
-//    }
-//}
-
 QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
 {
     if (!m_si || ! m_si->buffer()) {
         delete oldNode;
         return nullptr;
     }
-    auto  currentNode = static_cast<QSGSimpleTextureNode*>(oldNode);
+    delete oldNode;
+
+    QSGSimpleTextureNode* currentNode = 0;
+//     auto  currentNode = static_cast<QSGSimpleTextureNode*>(oldNode);
     if (!currentNode) {
         currentNode = new QSGSimpleTextureNode();
     }
-    QSGTexture *source = window()->createTextureFromImage(m_image);
-    source->setFiltering(QSGTexture::Linear);
-    currentNode->setTexture(source);
-    currentNode->setOwnsTexture(true);
 
-    const QRect destRect(QPointF(boundingRect().center() - QPointF(m_size.width(), m_size.height()) / 2).toPoint(), m_size);
-    currentNode->setRect(destRect);
+    auto b  = m_si->buffer();
+
+    GLuint newTexture = 0;
+
+    if (b->shmBuffer()) {
+        glGenTextures(1, &newTexture);
+        auto image = b->data();;
+        glBindTexture( GL_TEXTURE_2D, newTexture);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_image.size().width(), m_image.size().height(), 0,
+                GL_BGRA, GL_UNSIGNED_BYTE, m_image.bits());
+    } else {
+        //      TODO only lookup once
+       auto eglQueryWaylandBufferWL = (eglQueryWaylandBufferWL_func)eglGetProcAddress("eglQueryWaylandBufferWL");
+       auto eglCreateImageKHR = (eglCreateImageKHR_func)eglGetProcAddress("eglCreateImageKHR");
+
+        glGenTextures(1, &newTexture);
+        const EGLint attribs[] = {
+           EGL_WAYLAND_PLANE_WL, 0,
+           EGL_NONE
+       };
+       EGLImageKHR image = eglCreateImageKHR(display(), EGL_NO_CONTEXT, EGL_WAYLAND_BUFFER_WL,
+                                             (EGLClientBuffer)b->resource(), attribs);
+
+       glBindTexture(GL_TEXTURE_2D, newTexture);
+       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+       glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)image);
+    }
+
+    if (newTexture) {
+        QSGTexture *source = window()->createTextureFromId(newTexture, m_size);
+        source->setFiltering(QSGTexture::Linear);
+        currentNode->setTexture(source);
+        currentNode->setOwnsTexture(true);
+
+        const QRect destRect(QPointF(boundingRect().center() - QPointF(m_size.width(), m_size.height()) / 2).toPoint(), m_size);
+        currentNode->setRect(destRect);
+
+        if (m_si) {
+            m_si->frameRendered(m_timer.elapsed());
+        }
+    }
 
     return currentNode;
 }
