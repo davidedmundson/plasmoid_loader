@@ -200,8 +200,6 @@ void SurfaceItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGe
 
 void SurfaceItem::hoverMoveEvent(QHoverEvent *event)
 {
-    if (!m_seat || !hasActiveFocus()) return;
-
     m_seat->setTimestamp(event->timestamp());
     m_seat->setPointerPos(event->pos());
 }
@@ -210,7 +208,7 @@ static bool pressed=false;
 
 void SurfaceItem::mousePressEvent(QMouseEvent *event)
 {
-    if (!m_seat || !hasActiveFocus()) return;
+    setFocus(true);
     m_seat->setTimestamp(event->timestamp());
     m_seat->setPointerPos(event->pos());
     if (!pressed)
@@ -220,7 +218,6 @@ void SurfaceItem::mousePressEvent(QMouseEvent *event)
 
 void SurfaceItem::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (!m_seat || !hasActiveFocus()) return;
     m_seat->setTimestamp(event->timestamp());
     if (pressed)
         m_seat->pointerButtonReleased(event->button());
@@ -229,7 +226,7 @@ void SurfaceItem::mouseReleaseEvent(QMouseEvent *event)
 
 void SurfaceItem::keyPressEvent(QKeyEvent *event)
 {
-    if (!m_seat || !hasActiveFocus()) return;
+    qDebug() << "key press event";
     const int magicOffset = KWindowSystem:: isPlatformX11() ? 8 : 0;
     m_seat->setTimestamp(event->timestamp());
     m_seat->keyPressed(event->nativeScanCode() - magicOffset);
@@ -237,16 +234,10 @@ void SurfaceItem::keyPressEvent(QKeyEvent *event)
 
 void SurfaceItem::keyReleaseEvent(QKeyEvent *event)
 {
-    if (!m_seat || !hasActiveFocus()) return;
     const int magicOffset = KWindowSystem:: isPlatformX11() ? 8 : 0;
     m_seat->setTimestamp(event->timestamp());
     m_seat->keyReleased(event->nativeScanCode() - magicOffset);
 }
-
-//void SurfaceItem::resizeEvent(QResizeEvent *e)
-//{
-//    m_surfaceItem->setSize(e->size());
-//}
 
 SurfaceItem::SurfaceItem(QQuickItem *parent):
     QQuickItem(parent)
