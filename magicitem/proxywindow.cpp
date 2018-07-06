@@ -14,21 +14,18 @@ ProxyWindow::ProxyWindow(KWayland::Server::ShellSurfaceInterface *ssi):
 {
     m_surface = new SurfaceItem(contentItem());
     m_surface->setSurface(ssi);
-    m_surface->setVisible(true);
+//     m_surface->setVisible(true);
     m_surface->setFocus(true);
     resize(m_surface->size().toSize());
 
     //DAVE - thiis is shit. Use one signal, and use vars for request / actual
     connect(m_surface, &SurfaceItem::widthChanged, this, [this]() {
-        qDebug() << "item resized";
         resize(m_surface->width(), m_surface->height());
-//        qDebug() << "DAVE" << m_surface->width();
     });
     connect(m_surface, &SurfaceItem::heightChanged, this, [this]() {
-        qDebug() << "item resized";
-
         resize(m_surface->width(), m_surface->height());
     });
+
     connect(m_surface, &SurfaceItem::hasBufferChanged, this, [this](bool hasBuffer) {
         if (hasBuffer) {
             show();

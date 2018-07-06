@@ -103,10 +103,8 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
         }
         m_hasBuffer = true;
         emit hasBufferChanged(m_hasBuffer);
-        qDebug() << "setting size to " << si->buffer()->size();
         setWidth(si->buffer()->size().width());
         setHeight(si->buffer()->size().height());
-        emit widthChanged();
 
         m_size = si->buffer()->size();
         update();
@@ -121,7 +119,9 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
         if (activeFocus) {
             m_seat->setFocusedKeyboardSurface(si);
             m_seat->setFocusedPointerSurface(si);
-            qDebug() << "focus lost";
+            qDebug() << "focus gained!";
+        } else {
+
         }
     });
 }
@@ -145,7 +145,6 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
     GLuint newTexture = 0;
 
     if (b->shmBuffer()) {
-        qDebug() << "SHM PATH";
         glGenTextures(1, &newTexture);
         auto image = b->data();;
         glBindTexture( GL_TEXTURE_2D, newTexture);
@@ -153,9 +152,6 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.size().width(), image.size().height(), 0,
                 GL_BGRA, GL_UNSIGNED_BYTE, image.bits());
     } else {
-
-        qDebug() << "GL PATH";
-
         //      TODO only lookup once
        auto eglQueryWaylandBufferWL = (eglQueryWaylandBufferWL_func)eglGetProcAddress("eglQueryWaylandBufferWL");
        auto eglCreateImageKHR = (eglCreateImageKHR_func)eglGetProcAddress("eglCreateImageKHR");
@@ -269,6 +265,9 @@ SurfaceItem::SurfaceItem(QQuickItem *parent):
 
 SurfaceItem::~SurfaceItem()
 {
+    //TODO track, only send this if we had focus before
+//         m_seat->setFocusedKeyboardSurface(nullptr);
+//         m_seat->setFocusedPointerSurface(nullptr);
 }
 
 void SurfaceItem::wheelEvent(QWheelEvent *event)
