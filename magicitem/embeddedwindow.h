@@ -26,8 +26,6 @@ class SurfaceItem : public QQuickItem, public Container
 public:
     SurfaceItem(QQuickItem *parent=0);
     ~SurfaceItem();
-//    virtual void paint(QPainter *painter) override; //this sucks, do it properly with GL too, see QtQuick wayland and your demo
-
     void setSurface(KWayland::Server::ShellSurfaceInterface *surface);
     QPointer<KWayland::Server::SeatInterface> m_seat;
 

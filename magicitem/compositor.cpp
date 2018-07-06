@@ -4,6 +4,7 @@
 #include <KWayland/Server/output_interface.h>
 #include <KWayland/Server/compositor_interface.h>
 #include <KWayland/Server/shell_interface.h>
+#include <KWayland/Server/shell_interface.h>
 #include <KWayland/Server/buffer_interface.h>
 #include <KWayland/Server/datadevicemanager_interface.h>
 #include <KWayland/Server/server_decoration_interface.h>
@@ -49,15 +50,11 @@ Compositor::Compositor() {
     auto dataIface = displayIface->createDataDeviceManager(displayIface);
 
     connect(shellIface, &Server::ShellInterface::surfaceCreated, this, [this](Server::ShellSurfaceInterface *ssi) {
-        if (!m_hack) {
-            qDebug() << "new embed";
-            emit newSurface(ssi);
-            m_hack = true;
-
-            return;
+        emit newSurface(ssi);
+        if (!m_windows.contains(ssi->surface())) {
+            qDebug() << "new proxy";
+            new ProxyWindow(ssi); //responsible for deleting itself kjob style
         }
-        qDebug() << "new proxy";
-        new ProxyWindow(ssi); //responsible for deleting itself kjob style
     });
 
     compositorIface->create();

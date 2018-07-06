@@ -259,7 +259,6 @@ SurfaceItem::SurfaceItem(QQuickItem *parent):
     setFlag(ItemHasContents);
 
     Compositor::self(); //start compositor if it's not already
-    connect(Compositor::self(), &Compositor::newSurface, this, &SurfaceItem::setSurface);
     connect(this, &SurfaceItem::hasBufferChanged, this, &QQuickItem::update);
 }
 
