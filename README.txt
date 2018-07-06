@@ -7,16 +7,37 @@ Rollout plan:
 
   - make a process that mostly shoves existing content into this interface. Doesn't need to be API compatiable
 
-  - start port clients away from using Plasma::Applet
+  - port some of our obscure kdeplasma-addons applet to use it (like binary-clock or something)
 
-  - port some of our obscure applets (like weather && notes or something)
+  - deploy
 
   - port our main applets
 
+  ====
+
+  Folder contains two examples:
+
+- embed window plasmoid
+
+A user-configurable plasmoid for running an arbitrary app wtih args and stuff and having it in a plasmoid
+
+ - plasmoid loader
+
+ A fully fledged design of loading an applet out of process and embedding it
+
+  =====
+
+Embedding applets
+
  DBus host has
- /Plasma/Applets <--- Has FactoryIface
- /Plasma/AppletsID_HERE/2343  <---- PlasmoidIface
- /Plasma/AppletsID_HERE/123 <---- PlasmoidIface
+ /Plasma/Applets/Factory/AnalogClock <--- Has FactoryIface
+
+ /Plasma/Applets/Instance/343  <---- PlasmoidIface
+ /Plasma/Applets/Instance/123 <---- PlasmoidIface
+
+ DBus host service + path for factory will be written in relevant .desktop file
+
+ (This still means plasmashell will have to parse packages....boo!!!!!. Is there a sane way to avoid this that still allows Dbus activation?)
 
 FactoryIface:
   QDBusObjectPath  createApplet(string applet, int id, variantmap of random properties)
@@ -28,7 +49,14 @@ PlasmoidIface:
  WaylandResourceId   configWindow
 
 
+
+ WaylandResourceId  will be some reference to the surface in clever magic way I've not decided upon
+
+
+
 ----
+
+We need a
 
 Binary that hosts plasma applets from a hardcoded list
 Binary that hosts generic locally installed applet

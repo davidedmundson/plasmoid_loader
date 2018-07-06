@@ -145,6 +145,7 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
     GLuint newTexture = 0;
 
     if (b->shmBuffer()) {
+        qDebug() << "SHM PATH";
         glGenTextures(1, &newTexture);
         auto image = b->data();;
         glBindTexture( GL_TEXTURE_2D, newTexture);
@@ -152,6 +153,9 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.size().width(), image.size().height(), 0,
                 GL_BGRA, GL_UNSIGNED_BYTE, image.bits());
     } else {
+
+        qDebug() << "GL PATH";
+
         //      TODO only lookup once
        auto eglQueryWaylandBufferWL = (eglQueryWaylandBufferWL_func)eglGetProcAddress("eglQueryWaylandBufferWL");
        auto eglCreateImageKHR = (eglCreateImageKHR_func)eglGetProcAddress("eglCreateImageKHR");
@@ -163,6 +167,10 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
        };
        EGLImageKHR image = eglCreateImageKHR(display(), EGL_NO_CONTEXT, EGL_WAYLAND_BUFFER_WL,
                                              (EGLClientBuffer)b->resource(), attribs);
+
+       if (!image) {
+           qWarning() << "WTF!!! could not load EGL Buffer. Just disable egl stuff above and use SHM";
+       }
 
        glBindTexture(GL_TEXTURE_2D, newTexture);
        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -256,6 +264,7 @@ SurfaceItem::SurfaceItem(QQuickItem *parent):
 
     Compositor::self(); //start compositor if it's not already
     connect(Compositor::self(), &Compositor::newSurface, this, &SurfaceItem::setSurface);
+    connect(this, &SurfaceItem::hasBufferChanged, this, &QQuickItem::update);
 }
 
 SurfaceItem::~SurfaceItem()
