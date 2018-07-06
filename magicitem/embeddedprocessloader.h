@@ -12,6 +12,7 @@ class EmbeddedProcessLoader: public SurfaceItem
     Q_OBJECT
 public:
     EmbeddedProcessLoader(QQuickItem *parent = nullptr);
+    ~EmbeddedProcessLoader() override;
     Q_INVOKABLE void startProcess(const QString &exec, const QStringList &arguments = QStringList());
 
 private:

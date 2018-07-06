@@ -33,7 +33,15 @@ void EmbeddedProcessLoader::startProcess(const QString &exec, const QStringList 
         //TODO if PID blah blah
         // if (!surface);
         setSurface(ssi);
+        Compositor::self()->registerContainer(this, ssi->surface());
     });
 
     qDebug() << "DAVE, started " << m_process->pid();
+}
+
+EmbeddedProcessLoader::~EmbeddedProcessLoader()
+{
+    if (m_process) {
+        m_process->kill();
+    }
 }

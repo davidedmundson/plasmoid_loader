@@ -132,10 +132,8 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
         delete oldNode;
         return nullptr;
     }
-    delete oldNode;
 
-    QSGSimpleTextureNode* currentNode = 0;
-//     auto  currentNode = static_cast<QSGSimpleTextureNode*>(oldNode);
+    auto  currentNode = static_cast<QSGSimpleTextureNode*>(oldNode);
     if (!currentNode) {
         currentNode = new QSGSimpleTextureNode();
     }
