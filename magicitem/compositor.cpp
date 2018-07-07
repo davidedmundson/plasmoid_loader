@@ -44,7 +44,7 @@ Compositor::Compositor() {
     outputIface->create();
 
     m_seatIface = displayIface->createSeat(displayIface);
-//    m_seatIface->setHasKeyboard(true);
+   m_seatIface->setHasKeyboard(true);
 //    m_seatIface->setKeymap(); //DAVE, boring TODO
     m_seatIface->setHasPointer(true);
     auto dataIface = displayIface->createDataDeviceManager(displayIface);
