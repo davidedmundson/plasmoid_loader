@@ -15,7 +15,7 @@ using namespace KWayland::Server;
 
 void MagicItemPlugin::registerTypes(const char *uri)
 {
-    qmlRegisterType<SurfaceItem>(uri, 1, 0, "MagicItem");
+    qmlRegisterType<TestItem>(uri, 1, 0, "TestItem");
     qmlRegisterType<EmbeddedProcessLoader>(uri, 1, 0, "EmbeddedProcess");
 }
 

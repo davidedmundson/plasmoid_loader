@@ -27,6 +27,7 @@ public:
     SurfaceItem(QQuickItem *parent=0);
     ~SurfaceItem();
     void setSurface(KWayland::Server::ShellSurfaceInterface *surface);
+    KWayland::Server::ShellSurfaceInterface* surface() const;
     QPointer<KWayland::Server::SeatInterface> m_seat;
 
     QWindow *containerWindow() override;
@@ -52,4 +53,13 @@ private:
     bool m_hasBuffer = false;
     QElapsedTimer m_timer;
     QSize m_size;
+};
+
+
+/*Claims the first window set on this compositor - used for testing only*/
+class TestItem : public SurfaceItem
+{
+    Q_OBJECT
+public:
+    TestItem(QQuickItem *parent = 0);
 };

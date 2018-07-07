@@ -93,7 +93,6 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
         emit hasBufferChanged(m_hasBuffer);
     });
 
-
     connect(si, &SurfaceInterface::damaged, this, [si, this](const QRegion &r) {
         m_timer.restart();
         if (!si->buffer()) {
@@ -124,6 +123,11 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
 
         }
     });
+}
+
+ShellSurfaceInterface *SurfaceItem::surface() const
+{
+    return m_ssi;
 }
 
 QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
@@ -278,4 +282,18 @@ QWindow *SurfaceItem::containerWindow()
 QPoint SurfaceItem::adjustContainerOffset(const QPoint &point) const
 {
     return this->mapToGlobal(point).toPoint();
+}
+
+
+
+TestItem::TestItem(QQuickItem *parent)
+    :SurfaceItem(parent)
+{
+    connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::ShellSurfaceInterface *ssi) {
+        if (!surface()) {
+            setSurface(ssi);
+            Compositor::self()->registerContainer(this, ssi->surface());
+        }
+    });
+
 }

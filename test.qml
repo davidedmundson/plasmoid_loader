@@ -5,7 +5,7 @@ import org.dave 1.0
 Rectangle {
     width: 400; height: 400
 
-    MagicItem {
+    TestItem {
         focus: true
         anchors.margins: 20
         anchors.fill: parent
