@@ -69,7 +69,6 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
     }
     m_ssi = ssi;
     auto si = ssi->surface();
-    m_seat = Compositor::self()->seatInterface();
     m_seat->setFocusedPointerSurface(si);
     m_seat->setFocusedKeyboardSurface(si);
 
@@ -253,6 +252,7 @@ SurfaceItem::SurfaceItem(QQuickItem *parent):
 
     Compositor::self(); //start compositor if it's not already
     connect(this, &SurfaceItem::hasBufferChanged, this, &QQuickItem::update);
+    m_seat = Compositor::self()->seatInterface();
 }
 
 SurfaceItem::~SurfaceItem()
