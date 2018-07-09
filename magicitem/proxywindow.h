@@ -28,6 +28,10 @@ public:
     AbstractProxyWindow();
     QWindow* containerWindow() override;
     QPoint adjustContainerOffset(const QPoint &offset) const override;
+    void hideEvent(QHideEvent *e) override;
+
+Q_SIGNALS:
+    void closed();
 protected:
     SurfaceItem *m_surfaceItem;
 };

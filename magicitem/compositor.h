@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QHash>
+#include <QPointer>
 
 namespace KWayland {
 namespace  Server {
@@ -38,7 +39,12 @@ public:
 
     KWayland::Server::SeatInterface* seatInterface();
     Container* findContainer(KWayland::Server::SurfaceInterface *si);
+
+    //TODO map/unmap
     void registerContainer(Container *, KWayland::Server::SurfaceInterface *si);
+
+    void setActiveClient(KWayland::Server::SurfaceInterface *si);
+    KWayland::Server::SurfaceInterface *activeClient() const;
 
 Q_SIGNALS:
      void newSurface(KWayland::Server::XdgShellSurfaceInterface *shellTopLevel);
@@ -46,8 +52,7 @@ Q_SIGNALS:
 private:
     KWayland::Server::SeatInterface *m_seatIface;
     QHash<KWayland::Server::SurfaceInterface*, Container*> m_windows;
-
-    bool m_hack = false;;
+    QPointer<KWayland::Server::SurfaceInterface> m_active;
 };
 
 

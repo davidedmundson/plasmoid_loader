@@ -58,6 +58,7 @@ Compositor::Compositor() {
         }
     });
     connect(shellIface, &Server::XdgShellInterface::xdgPopupCreated, this, [this](Server::XdgShellPopupInterface *popup) {
+        qDebug() << "popup created!";
         new PopupProxyWindow(popup);
     });
 
@@ -65,6 +66,18 @@ Compositor::Compositor() {
     m_seatIface->create();
     shellIface->create();
     dataIface->create();
+}
+
+void Compositor::setActiveClient(KWayland::Server::SurfaceInterface *si)
+{
+    m_seatIface->setFocusedKeyboardSurface(si);
+    m_seatIface->setFocusedPointerSurface(si);
+    m_active = si;
+}
+
+KWayland::Server::SurfaceInterface* Compositor::activeClient() const
+{
+    return m_active.data();
 }
 
 Server::SeatInterface *Compositor::seatInterface()
@@ -80,6 +93,9 @@ Container *Compositor::findContainer(Server::SurfaceInterface *si)
 void Compositor::registerContainer(Container *container, KWayland::Server::SurfaceInterface *si)
 {
     m_windows[si] = container;
+    connect(si,  &Server::Resource::aboutToBeUnbound, this, [this, si]() {
+        m_windows.remove(si);
+    });
 }
 
 Container::Container(){}

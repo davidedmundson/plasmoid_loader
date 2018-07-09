@@ -37,6 +37,7 @@ void EmbeddedProcessLoader::startProcess(const QString &exec, const QStringList 
             return;
         }
         setSurface(ssi->surface());
+        ssi->configure(0, size().toSize());
         Compositor::self()->registerContainer(this, ssi->surface());
     });
 

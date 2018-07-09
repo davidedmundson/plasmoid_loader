@@ -24,6 +24,11 @@ AbstractProxyWindow::AbstractProxyWindow():
     });
 }
 
+void AbstractProxyWindow::hideEvent(QHideEvent *e)
+{
+    emit closed();
+}
+
 QWindow *AbstractProxyWindow::containerWindow()
 {
     return this;
@@ -43,25 +48,29 @@ TopLevelProxyWindow::TopLevelProxyWindow(KWayland::Server::XdgShellSurfaceInterf
     setTitle(toplevel->title());
     connect(toplevel, &Server::XdgShellSurfaceInterface::titleChanged, this, &QWindow::setTitle);
 
-    //DAVE - thiis is shit. Use one signal, and use vars for request / actual
-    connect(m_surfaceItem, &SurfaceItem::widthChanged, this, [this, toplevel]() {
-        toplevel->configure(0, QSize(m_surfaceItem->width(), m_surfaceItem->height()));
+    connect(m_surfaceItem, &SurfaceItem::sizeChanged, this, [this, toplevel]() {
+        toplevel->configure(0, m_surfaceItem->size().toSize());
     });
-    connect(m_surfaceItem, &SurfaceItem::heightChanged, this, [this, toplevel]() {
-        toplevel->configure(0, QSize(m_surfaceItem->width(), m_surfaceItem->height()));
-    });
+    toplevel->configure(0, m_surfaceItem->size().toSize());
 }
 
 PopupProxyWindow::PopupProxyWindow(KWayland::Server::XdgShellPopupInterface *popup)
 {
     setFlags(flags() | Qt::Popup);
+    resize(popup->initialSize());
     m_surfaceItem->setSurface(popup->surface());
+
 
     Container *container = Compositor::self()->findContainer(popup->transientFor().data());
     if (container) {
         setTransientParent(container->containerWindow());
         setPosition(popup->transientOffset() + container->containerWindow()->position());
+        popup->configure(QRect(popup->transientOffset(), popup->initialSize()));
+    } else {
     }
     connect(popup, &Server::Resource::aboutToBeUnbound, this, &QWindow::close);
-
+    connect(this, &AbstractProxyWindow::closed, popup, [popup]() {
+        qDebug() << "popup done";
+        popup->popupDone();
+    });
 }

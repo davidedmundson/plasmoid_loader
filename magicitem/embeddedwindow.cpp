@@ -67,7 +67,6 @@ void SurfaceItem::setSurface(SurfaceInterface *si)
     m_seat->setFocusedPointerSurface(si);
     m_seat->setFocusedKeyboardSurface(si);
 
-
     connect(si, &SurfaceInterface::unmapped, this, [si, this]() {
         m_hasBuffer = false;
         qDebug() << "unmapped";
@@ -108,8 +107,7 @@ void SurfaceItem::setSurface(SurfaceInterface *si)
     connect(this, &QQuickItem::activeFocusChanged, this, [this, si](bool activeFocus) {
         //DAVE - need to move this more globally to handle no-one having focus
         if (activeFocus) {
-            m_seat->setFocusedKeyboardSurface(si);
-            m_seat->setFocusedPointerSurface(si);
+
             qDebug() << "focus gained!";
         } else {
 
@@ -193,33 +191,31 @@ void SurfaceItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGe
 
 void SurfaceItem::hoverMoveEvent(QHoverEvent *event)
 {
+    if (Compositor::self()->activeClient() != m_si) {
+        return;
+    }
     m_seat->setTimestamp(event->timestamp());
     m_seat->setPointerPos(event->pos());
 }
 
-static bool pressed=false;
-
 void SurfaceItem::mousePressEvent(QMouseEvent *event)
 {
     setFocus(true);
+    Compositor::self()->setActiveClient(m_si);
+
     m_seat->setTimestamp(event->timestamp());
     m_seat->setPointerPos(event->pos());
-    if (!pressed)
-        m_seat->pointerButtonPressed(event->button());
-    pressed=true;
+    m_seat->pointerButtonPressed(event->button());
 }
 
 void SurfaceItem::mouseReleaseEvent(QMouseEvent *event)
 {
     m_seat->setTimestamp(event->timestamp());
-    if (pressed)
-        m_seat->pointerButtonReleased(event->button());
-    pressed=false;
+    m_seat->pointerButtonReleased(event->button());
 }
 
 void SurfaceItem::keyPressEvent(QKeyEvent *event)
 {
-    qDebug() << "key press event";
     const int magicOffset = KWindowSystem:: isPlatformX11() ? 8 : 0;
     m_seat->setTimestamp(event->timestamp());
     m_seat->keyPressed(event->nativeScanCode() - magicOffset);
@@ -247,17 +243,17 @@ SurfaceItem::SurfaceItem(QQuickItem *parent):
 
 SurfaceItem::~SurfaceItem()
 {
-    //TODO track, only send this if we had focus before
-//         m_seat->setFocusedKeyboardSurface(nullptr);
-//         m_seat->setFocusedPointerSurface(nullptr);
 }
 
 void SurfaceItem::wheelEvent(QWheelEvent *event)
 {
+    if (Compositor::self()->activeClient() != m_si) {
+        return;
+    }
     m_seat->setTimestamp(event->timestamp());
     const QPoint &angle = event->angleDelta() / (8 * 15);
     if (angle.x() != 0) {
-        m_seat->pointerAxis(Qt::Horizontal, angle.x() * 120);
+        m_seat->pointerAxis(Qt::Horizontal, - angle.x() * 120);
     }
     if (angle.y() != 0) {
         m_seat->pointerAxis(Qt::Vertical, -angle.y() * 120);
@@ -275,15 +271,21 @@ QPoint SurfaceItem::adjustContainerOffset(const QPoint &point) const
 }
 
 
-
 TestItem::TestItem(QQuickItem *parent)
     :SurfaceItem(parent)
 {
-    connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::XdgShellSurfaceInterface *ssi) {
-        if (!surface()) {
-            setSurface(ssi->surface());
-            Compositor::self()->registerContainer(this, ssi->surface());
+    connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::XdgShellSurfaceInterface *toplevel) {
+        if (surface()) {
+            return;
         }
-    });
 
+        qDebug() << "test item";
+        setSurface(toplevel->surface());
+        toplevel->configure(0, size().toSize());
+        Compositor::self()->registerContainer(this, toplevel->surface());
+
+        connect(this, &SurfaceItem::sizeChanged, toplevel, [=]() {
+            toplevel->configure(0, size().toSize());
+        });
+    });
 }
