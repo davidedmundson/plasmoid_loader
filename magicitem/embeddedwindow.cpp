@@ -61,20 +61,12 @@ void SurfaceItem::initialiseDisplay(KWayland::Server::Display *displayiFace) {
    displayiFace->setEglDisplay(d);
 }
 
-void SurfaceItem::setSurface(XdgShellSurfaceInterface *ssi)
+void SurfaceItem::setSurface(SurfaceInterface *si)
 {
-    if (m_ssi) {
-        //goal here is to only cope with one window.
-        //if some muppet sets two, that's their problem.
-        return;
-    }
-    m_ssi = ssi;
-    auto si = ssi->surface();
+    m_si = si;
     m_seat->setFocusedPointerSurface(si);
     m_seat->setFocusedKeyboardSurface(si);
 
-    m_si = si;
-    m_ssi->configure(0, QSize(width(),height()));
 
     connect(si, &SurfaceInterface::unmapped, this, [si, this]() {
         m_hasBuffer = false;
@@ -125,9 +117,9 @@ void SurfaceItem::setSurface(XdgShellSurfaceInterface *ssi)
     });
 }
 
-XdgShellSurfaceInterface *SurfaceItem::surface() const
+SurfaceInterface *SurfaceItem::surface() const
 {
-    return m_ssi;
+    return m_si;
 }
 
 QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
@@ -196,10 +188,7 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
 void SurfaceItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
     Q_UNUSED(oldGeometry);
-    if (!m_ssi) {
-        return;
-    }
-    m_ssi->configure(0, QSize(width(),height()));
+    emit sizeChanged();
 }
 
 void SurfaceItem::hoverMoveEvent(QHoverEvent *event)
@@ -292,7 +281,7 @@ TestItem::TestItem(QQuickItem *parent)
 {
     connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::XdgShellSurfaceInterface *ssi) {
         if (!surface()) {
-            setSurface(ssi);
+            setSurface(ssi->surface());
             Compositor::self()->registerContainer(this, ssi->surface());
         }
     });

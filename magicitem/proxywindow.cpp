@@ -9,64 +9,59 @@
 
 using namespace KWayland;
 
-ProxyWindow::ProxyWindow(KWayland::Server::XdgShellSurfaceInterface *ssi):
+AbstractProxyWindow::AbstractProxyWindow():
     QQuickWindow()
 {
-    m_surface = new SurfaceItem(contentItem());
-    m_surface->setSurface(ssi);
-//     m_surface->setVisible(true);
-    m_surface->setFocus(true);
-    resize(m_surface->size().toSize());
+    m_surfaceItem = new SurfaceItem(contentItem());
+    m_surfaceItem->setFocus(true);
 
-    //DAVE - thiis is shit. Use one signal, and use vars for request / actual
-    connect(m_surface, &SurfaceItem::widthChanged, this, [this]() {
-        resize(m_surface->width(), m_surface->height());
-    });
-    connect(m_surface, &SurfaceItem::heightChanged, this, [this]() {
-        resize(m_surface->width(), m_surface->height());
-    });
-
-    connect(m_surface, &SurfaceItem::hasBufferChanged, this, [this](bool hasBuffer) {
+    connect(m_surfaceItem, &SurfaceItem::hasBufferChanged, this, [this](bool hasBuffer) {
         if (hasBuffer) {
             show();
         } else {
             hide();
         }
     });
-
-    setTitle(ssi->title());
-    connect(ssi, &Server::XdgShellSurfaceInterface::titleChanged, this, &QWindow::setTitle);
-
-//             setFlags(flags() | Qt::Popup);
-
-//     connect(ssi, &Server::ShellSurfaceInterface::transientForChanged, this, [this, ssi]() {
-//         Container *container = Compositor::self()->findContainer(ssi->transientFor().data());
-//         if (!container) {
-//             return;
-//         }
-//         setTransientParent(container->containerWindow());
-//         QPoint offset = container->adjustContainerOffset(ssi->transientOffset());
-//         setPosition(offset + container->containerWindow()->position());
-//     });
-//
-//     connect(ssi, &Server::ShellSurfaceInterface::transientOffsetChanged, this, [this, ssi]() {
-//         Container *container = Compositor::self()->findContainer(ssi->transientFor().data());
-//         if (!container) {
-//             return;
-//         }
-//         QPoint offset = container->adjustContainerOffset(ssi->transientOffset());
-//         setPosition(offset + container->containerWindow()->position());
-//     });
-
-    connect(ssi, &Server::Resource::aboutToBeUnbound, this, &QWindow::close);
 }
 
-QWindow *ProxyWindow::containerWindow()
+QWindow *AbstractProxyWindow::containerWindow()
 {
     return this;
 }
 
-QPoint ProxyWindow::adjustContainerOffset(const QPoint &offset) const
+QPoint AbstractProxyWindow::adjustContainerOffset(const QPoint &offset) const
 {
     return offset;
+}
+
+TopLevelProxyWindow::TopLevelProxyWindow(KWayland::Server::XdgShellSurfaceInterface *toplevel)
+{
+    m_surfaceItem->setSurface(toplevel->surface());
+
+    connect(toplevel, &Server::Resource::aboutToBeUnbound, this, &QWindow::close);
+
+    setTitle(toplevel->title());
+    connect(toplevel, &Server::XdgShellSurfaceInterface::titleChanged, this, &QWindow::setTitle);
+
+    //DAVE - thiis is shit. Use one signal, and use vars for request / actual
+    connect(m_surfaceItem, &SurfaceItem::widthChanged, this, [this, toplevel]() {
+        toplevel->configure(0, QSize(m_surfaceItem->width(), m_surfaceItem->height()));
+    });
+    connect(m_surfaceItem, &SurfaceItem::heightChanged, this, [this, toplevel]() {
+        toplevel->configure(0, QSize(m_surfaceItem->width(), m_surfaceItem->height()));
+    });
+}
+
+PopupProxyWindow::PopupProxyWindow(KWayland::Server::XdgShellPopupInterface *popup)
+{
+    setFlags(flags() | Qt::Popup);
+    m_surfaceItem->setSurface(popup->surface());
+
+    Container *container = Compositor::self()->findContainer(popup->transientFor().data());
+    if (container) {
+        setTransientParent(container->containerWindow());
+        setPosition(popup->transientOffset() + container->containerWindow()->position());
+    }
+    connect(popup, &Server::Resource::aboutToBeUnbound, this, &QWindow::close);
+
 }

@@ -28,8 +28,8 @@ public:
 
     SurfaceItem(QQuickItem *parent=0);
     ~SurfaceItem();
-    void setSurface(KWayland::Server::XdgShellSurfaceInterface *shellTopLevel);
-    KWayland::Server::XdgShellSurfaceInterface* surface() const;
+    void setSurface(KWayland::Server::SurfaceInterface  *surface);
+    KWayland::Server::SurfaceInterface* surface() const;
     QPointer<KWayland::Server::SeatInterface> m_seat;
 
     QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
@@ -38,6 +38,7 @@ public:
 
 signals:
     void hasBufferChanged(bool hasBuffer);
+    void sizeChanged();
 protected:
     virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
     virtual void hoverMoveEvent(QHoverEvent *event) override;
@@ -48,7 +49,6 @@ protected:
     void wheelEvent(QWheelEvent *event);
 
     QPointer<KWayland::Server::SurfaceInterface> m_si;
-    QPointer<KWayland::Server::XdgShellSurfaceInterface> m_ssi;
 private:
     bool m_hasBuffer = false;
     QElapsedTimer m_timer;

@@ -54,11 +54,12 @@ Compositor::Compositor() {
         //TODO not a signal, itterate through containers
         if (!m_windows.contains(shellTopLevel->surface())) {
             qDebug() << "new proxy";
-            new ProxyWindow(shellTopLevel); //responsible for deleting itself kjob style
+            new TopLevelProxyWindow(shellTopLevel); //responsible for deleting itself kjob style
         }
     });
-    //         void xdgPopupCreated(KWayland::Server::XdgShellPopupInterface *surface);
-
+    connect(shellIface, &Server::XdgShellInterface::xdgPopupCreated, this, [this](Server::XdgShellPopupInterface *popup) {
+        new PopupProxyWindow(popup);
+    });
 
     compositorIface->create();
     m_seatIface->create();
@@ -80,8 +81,6 @@ void Compositor::registerContainer(Container *container, KWayland::Server::Surfa
 {
     m_windows[si] = container;
 }
-
-
 
 Container::Container(){}
 Container::~Container(){}
