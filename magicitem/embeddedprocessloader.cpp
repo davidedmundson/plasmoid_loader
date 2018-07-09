@@ -3,6 +3,7 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <KWayland/Server/shell_interface.h>
+#include <KWayland/Server/clientconnection.h>
 
 EmbeddedProcessLoader::EmbeddedProcessLoader(QQuickItem *parent):
     SurfaceItem(parent)
@@ -31,7 +32,10 @@ void EmbeddedProcessLoader::startProcess(const QString &exec, const QStringList 
 
     connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::ShellSurfaceInterface *ssi) {
         //TODO if PID blah blah
-        // if (!surface);
+        if (ssi->client()->processId() != m_process->pid()) {
+            qDebug() << m_process->pid() << ssi->client()->processId();
+            return;
+        }
         setSurface(ssi);
         Compositor::self()->registerContainer(this, ssi->surface());
     });

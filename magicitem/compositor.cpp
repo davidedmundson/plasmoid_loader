@@ -51,6 +51,7 @@ Compositor::Compositor() {
 
     connect(shellIface, &Server::ShellInterface::surfaceCreated, this, [this](Server::ShellSurfaceInterface *ssi) {
         emit newSurface(ssi);
+        //TODO not a signal, itterate through containers
         if (!m_windows.contains(ssi->surface())) {
             qDebug() << "new proxy";
             new ProxyWindow(ssi); //responsible for deleting itself kjob style

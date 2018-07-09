@@ -24,18 +24,18 @@ class SurfaceItem : public QQuickItem, public Container
 {
     Q_OBJECT
 public:
+    static void initialiseDisplay(KWayland::Server::Display *display);
+
     SurfaceItem(QQuickItem *parent=0);
     ~SurfaceItem();
     void setSurface(KWayland::Server::ShellSurfaceInterface *surface);
     KWayland::Server::ShellSurfaceInterface* surface() const;
     QPointer<KWayland::Server::SeatInterface> m_seat;
 
+    QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
     QWindow *containerWindow() override;
     QPoint adjustContainerOffset(const QPoint &point) const override;
 
-    QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
-
-    static void initialiseDisplay(KWayland::Server::Display *display);
 signals:
     void hasBufferChanged(bool hasBuffer);
 protected:
@@ -54,6 +54,13 @@ private:
     QElapsedTimer m_timer;
     QSize m_size;
 };
+
+// class EmbeddedWindow: public SurfaceItem, public Container
+// {
+    //EmbeddedWindow(QQuickItem *parent = nullptr);
+//     QWindow *containerWindow() override;
+//     QPoint adjustContainerOffset(const QPoint &point) const override;
+// }
 
 
 /*Claims the first window set on this compositor - used for testing only*/
