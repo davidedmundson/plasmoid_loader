@@ -1,7 +1,7 @@
 #include "proxywindow.h"
 
 #include <KWayland/Server/surface_interface.h>
-#include <KWayland/Server/shell_interface.h>
+#include <KWayland/Server/xdgshell_interface.h>
 #include <KWayland/Server/buffer_interface.h>
 
 #include "compositor.h"
@@ -9,7 +9,7 @@
 
 using namespace KWayland;
 
-ProxyWindow::ProxyWindow(KWayland::Server::ShellSurfaceInterface *ssi):
+ProxyWindow::ProxyWindow(KWayland::Server::XdgShellSurfaceInterface *ssi):
     QQuickWindow()
 {
     m_surface = new SurfaceItem(contentItem());
@@ -35,35 +35,28 @@ ProxyWindow::ProxyWindow(KWayland::Server::ShellSurfaceInterface *ssi):
     });
 
     setTitle(ssi->title());
-    connect(ssi, &Server::ShellSurfaceInterface::titleChanged, this, &QWindow::setTitle);
-    qDebug() << "popup" << ssi->isPopup(); //send some fake grabbed shit
+    connect(ssi, &Server::XdgShellSurfaceInterface::titleChanged, this, &QWindow::setTitle);
 
-    connect(ssi, &Server::ShellSurfaceInterface::popupChanged, this, [this, ssi]() {
-        if (ssi->isPopup()) {
-            qDebug() << "popup" << ssi->isPopup(); //send some fake grabbed shit
-            setFlags(flags() | Qt::Popup);
-        } else {
-        }
-    });
+//             setFlags(flags() | Qt::Popup);
 
-    connect(ssi, &Server::ShellSurfaceInterface::transientForChanged, this, [this, ssi]() {
-        Container *container = Compositor::self()->findContainer(ssi->transientFor().data());
-        if (!container) {
-            return;
-        }
-        setTransientParent(container->containerWindow());
-        QPoint offset = container->adjustContainerOffset(ssi->transientOffset());
-        setPosition(offset + container->containerWindow()->position());
-    });
-
-    connect(ssi, &Server::ShellSurfaceInterface::transientOffsetChanged, this, [this, ssi]() {
-        Container *container = Compositor::self()->findContainer(ssi->transientFor().data());
-        if (!container) {
-            return;
-        }
-        QPoint offset = container->adjustContainerOffset(ssi->transientOffset());
-        setPosition(offset + container->containerWindow()->position());
-    });
+//     connect(ssi, &Server::ShellSurfaceInterface::transientForChanged, this, [this, ssi]() {
+//         Container *container = Compositor::self()->findContainer(ssi->transientFor().data());
+//         if (!container) {
+//             return;
+//         }
+//         setTransientParent(container->containerWindow());
+//         QPoint offset = container->adjustContainerOffset(ssi->transientOffset());
+//         setPosition(offset + container->containerWindow()->position());
+//     });
+//
+//     connect(ssi, &Server::ShellSurfaceInterface::transientOffsetChanged, this, [this, ssi]() {
+//         Container *container = Compositor::self()->findContainer(ssi->transientFor().data());
+//         if (!container) {
+//             return;
+//         }
+//         QPoint offset = container->adjustContainerOffset(ssi->transientOffset());
+//         setPosition(offset + container->containerWindow()->position());
+//     });
 
     connect(ssi, &Server::Resource::aboutToBeUnbound, this, &QWindow::close);
 }

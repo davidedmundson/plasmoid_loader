@@ -7,7 +7,7 @@ namespace KWayland {
 namespace  Server {
 class SeatInterface;
 class SurfaceInterface;
-class ShellSurfaceInterface;
+class XdgShellSurfaceInterface;
 }
 namespace Client {
 class Shell;
@@ -41,7 +41,7 @@ public:
     void registerContainer(Container *, KWayland::Server::SurfaceInterface *si);
 
 Q_SIGNALS:
-     void newSurface(KWayland::Server::ShellSurfaceInterface *ssi);
+     void newSurface(KWayland::Server::XdgShellSurfaceInterface *shellTopLevel);
 
 private:
     KWayland::Server::SeatInterface *m_seatIface;

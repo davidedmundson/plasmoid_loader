@@ -3,8 +3,8 @@
 #include <KWayland/Server/display.h>
 #include <KWayland/Server/output_interface.h>
 #include <KWayland/Server/compositor_interface.h>
-#include <KWayland/Server/shell_interface.h>
-#include <KWayland/Server/shell_interface.h>
+#include <KWayland/Server/seat_interface.h>
+#include <KWayland/Server/xdgshell_interface.h>
 #include <KWayland/Server/buffer_interface.h>
 #include <KWayland/Server/datadevicemanager_interface.h>
 #include <KWayland/Server/server_decoration_interface.h>
@@ -31,7 +31,7 @@ Compositor::Compositor() {
     displayIface->createShm();
     SurfaceItem::initialiseDisplay(displayIface);
 
-    auto shellIface = displayIface->createShell(displayIface);
+    auto shellIface = displayIface->createXdgShell(Server::XdgShellInterfaceVersion::UnstableV6, displayIface);
     auto compositorIface = displayIface->createCompositor(this);
     auto decorationIface = displayIface->createServerSideDecorationManager(displayIface);
     decorationIface->setDefaultMode(Server::ServerSideDecorationManagerInterface::Mode::Server);
@@ -44,19 +44,21 @@ Compositor::Compositor() {
     outputIface->create();
 
     m_seatIface = displayIface->createSeat(displayIface);
-   m_seatIface->setHasKeyboard(true);
+    m_seatIface->setHasKeyboard(true);
 //    m_seatIface->setKeymap(); //DAVE, boring TODO
     m_seatIface->setHasPointer(true);
     auto dataIface = displayIface->createDataDeviceManager(displayIface);
 
-    connect(shellIface, &Server::ShellInterface::surfaceCreated, this, [this](Server::ShellSurfaceInterface *ssi) {
-        emit newSurface(ssi);
+    connect(shellIface, &Server::XdgShellInterface::surfaceCreated, this, [this](Server::XdgShellSurfaceInterface *shellTopLevel) {
+        emit newSurface(shellTopLevel);
         //TODO not a signal, itterate through containers
-        if (!m_windows.contains(ssi->surface())) {
+        if (!m_windows.contains(shellTopLevel->surface())) {
             qDebug() << "new proxy";
-            new ProxyWindow(ssi); //responsible for deleting itself kjob style
+            new ProxyWindow(shellTopLevel); //responsible for deleting itself kjob style
         }
     });
+    //         void xdgPopupCreated(KWayland::Server::XdgShellPopupInterface *surface);
+
 
     compositorIface->create();
     m_seatIface->create();

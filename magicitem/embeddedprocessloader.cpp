@@ -2,7 +2,7 @@
 
 #include <QProcess>
 #include <QProcessEnvironment>
-#include <KWayland/Server/shell_interface.h>
+#include <KWayland/Server/xdgshell_interface.h>
 #include <KWayland/Server/clientconnection.h>
 
 EmbeddedProcessLoader::EmbeddedProcessLoader(QQuickItem *parent):
@@ -30,7 +30,7 @@ void EmbeddedProcessLoader::startProcess(const QString &exec, const QStringList 
 
     //FUTURE, watch process lifespan, maybe restart ?
 
-    connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::ShellSurfaceInterface *ssi) {
+    connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::XdgShellSurfaceInterface *ssi) {
         //TODO if PID blah blah
         if (ssi->client()->processId() != m_process->pid()) {
             qDebug() << m_process->pid() << ssi->client()->processId();

@@ -7,7 +7,7 @@ namespace KWayland {
 namespace  Server {
 class SeatInterface;
 class SurfaceInterface;
-class ShellSurfaceInterface; //TODO XDG
+class XdgShellSurfaceInterface;
 }
 }
 
@@ -24,9 +24,12 @@ class ProxyWindow: public QQuickWindow, public Container
 {
     Q_OBJECT
 public:
-    ProxyWindow(KWayland::Server::ShellSurfaceInterface *ssi);
+    ProxyWindow(KWayland::Server::XdgShellSurfaceInterface *shell);
+//maybe two ProxyWidnows?
+    //     XdgShellPopupInterface
     QWindow* containerWindow() override;
     QPoint adjustContainerOffset(const QPoint &offset) const override;
 private:
+    void commonInit();
     SurfaceItem *m_surface;
 };

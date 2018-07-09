@@ -10,7 +10,7 @@ namespace KWayland {
 namespace  Server {
 class SeatInterface;
 class SurfaceInterface;
-class ShellSurfaceInterface; //TODO XDG
+class XdgShellSurfaceInterface;
 class Display;
 }
 }
@@ -28,8 +28,8 @@ public:
 
     SurfaceItem(QQuickItem *parent=0);
     ~SurfaceItem();
-    void setSurface(KWayland::Server::ShellSurfaceInterface *surface);
-    KWayland::Server::ShellSurfaceInterface* surface() const;
+    void setSurface(KWayland::Server::XdgShellSurfaceInterface *shellTopLevel);
+    KWayland::Server::XdgShellSurfaceInterface* surface() const;
     QPointer<KWayland::Server::SeatInterface> m_seat;
 
     QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
@@ -48,7 +48,7 @@ protected:
     void wheelEvent(QWheelEvent *event);
 
     QPointer<KWayland::Server::SurfaceInterface> m_si;
-    QPointer<KWayland::Server::ShellSurfaceInterface> m_ssi;
+    QPointer<KWayland::Server::XdgShellSurfaceInterface> m_ssi;
 private:
     bool m_hasBuffer = false;
     QElapsedTimer m_timer;

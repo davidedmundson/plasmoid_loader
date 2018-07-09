@@ -3,8 +3,9 @@
 #include <KWayland/Server/display.h>
 #include <KWayland/Server/output_interface.h>
 #include <KWayland/Server/compositor_interface.h>
-#include <KWayland/Server/shell_interface.h>
 #include <KWayland/Server/buffer_interface.h>
+#include <KWayland/Server/xdgshell_interface.h>
+#include <KWayland/Server/seat_interface.h>
 #include <KWayland/Server/datadevicemanager_interface.h>
 #include <KWayland/Server/server_decoration_interface.h>
 #include <KWindowSystem>
@@ -60,7 +61,7 @@ void SurfaceItem::initialiseDisplay(KWayland::Server::Display *displayiFace) {
    displayiFace->setEglDisplay(d);
 }
 
-void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
+void SurfaceItem::setSurface(XdgShellSurfaceInterface *ssi)
 {
     if (m_ssi) {
         //goal here is to only cope with one window.
@@ -73,7 +74,7 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
     m_seat->setFocusedKeyboardSurface(si);
 
     m_si = si;
-    m_ssi->requestSize(QSize(width(),height()));
+    m_ssi->configure(0, QSize(width(),height()));
 
     connect(si, &SurfaceInterface::unmapped, this, [si, this]() {
         m_hasBuffer = false;
@@ -124,7 +125,7 @@ void SurfaceItem::setSurface(ShellSurfaceInterface *ssi)
     });
 }
 
-ShellSurfaceInterface *SurfaceItem::surface() const
+XdgShellSurfaceInterface *SurfaceItem::surface() const
 {
     return m_ssi;
 }
@@ -198,7 +199,7 @@ void SurfaceItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGe
     if (!m_ssi) {
         return;
     }
-    m_ssi->requestSize(newGeometry.size().toSize());
+    m_ssi->configure(0, QSize(width(),height()));
 }
 
 void SurfaceItem::hoverMoveEvent(QHoverEvent *event)
@@ -289,7 +290,7 @@ QPoint SurfaceItem::adjustContainerOffset(const QPoint &point) const
 TestItem::TestItem(QQuickItem *parent)
     :SurfaceItem(parent)
 {
-    connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::ShellSurfaceInterface *ssi) {
+    connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::XdgShellSurfaceInterface *ssi) {
         if (!surface()) {
             setSurface(ssi);
             Compositor::self()->registerContainer(this, ssi->surface());
