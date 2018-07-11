@@ -108,8 +108,9 @@ void SurfaceItem::setSurface(SurfaceInterface *si)
         //DAVE - need to move this more globally to handle no-one having focus
         if (activeFocus) {
 
-            qDebug() << "focus gained!";
+            qDebug() << this << "focus gained!";
         } else {
+            qDebug() << this << "focus lost!";
 
         }
     });

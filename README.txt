@@ -1,11 +1,11 @@
 Out of process plasmoids
 
 Rollout plan:
-  - make bodge system for hosting random processes
+  - make bodge system for hosting random processes (DONE)
 
-  - make infra for hosting random custom content OOP in a proper organised way (see below)
+  - make infra for hosting random custom content OOP in a proper organised way (WIP)
 
-  - make a process that mostly shoves existing content into this interface. Doesn't need to be API compatiable
+  - make a process that mostly shoves existing content into this interface. (WIP)
 
   - port some of our obscure kdeplasma-addons applet to use it (like binary-clock or something)
 
@@ -37,7 +37,7 @@ Embedding applets
 
  DBus host service + path for factory will be written in relevant .desktop file
 
- (This still means plasmashell will have to parse packages....boo!!!!!. Is there a sane way to avoid this that still allows Dbus activation?)
+ (This still means plasmashell will have to parse packages....boo!!!!!. Is there a sane way to avoid this that still allows DBus activation?)
 
 FactoryIface:
   QDBusObjectPath  createApplet(string applet, int id, variantmap of random properties)

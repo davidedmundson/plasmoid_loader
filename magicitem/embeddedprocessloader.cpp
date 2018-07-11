@@ -32,7 +32,7 @@ void EmbeddedProcessLoader::startProcess(const QString &exec, const QStringList 
 
     connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::XdgShellSurfaceInterface *ssi) {
         //TODO if PID blah blah
-        if (ssi->client()->processId() != m_process->pid()) {
+        if (ssi->client()->processId() != m_process->pid() && !surface()) {
             qDebug() << m_process->pid() << ssi->client()->processId();
             return;
         }

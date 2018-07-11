@@ -2,6 +2,7 @@
 
 #include <KWayland/Server/surface_interface.h>
 #include <KWayland/Server/xdgshell_interface.h>
+#include <KWayland/Server/seat_interface.h>
 #include <KWayland/Server/buffer_interface.h>
 
 #include "compositor.h"
@@ -56,18 +57,25 @@ TopLevelProxyWindow::TopLevelProxyWindow(KWayland::Server::XdgShellSurfaceInterf
 
 PopupProxyWindow::PopupProxyWindow(KWayland::Server::XdgShellPopupInterface *popup)
 {
-    setFlags(flags() | Qt::Popup);
-    resize(popup->initialSize());
-    m_surfaceItem->setSurface(popup->surface());
 
+    m_surfaceItem->setSurface(popup->surface());
 
     Container *container = Compositor::self()->findContainer(popup->transientFor().data());
     if (container) {
         setTransientParent(container->containerWindow());
-        setPosition(popup->transientOffset() + container->containerWindow()->position());
+        setPosition(container->adjustContainerOffset(popup->transientOffset()) + container->containerWindow()->position());
         popup->configure(QRect(popup->transientOffset(), popup->initialSize()));
     } else {
     }
+
+    setFlags(Qt::Popup);
+    resize(popup->initialSize());
+
+    connect(popup, &Server::XdgShellPopupInterface::grabRequested, this, [this]() {
+        qDebug() << "grabbed!";
+        setFlags(Qt::Popup);
+    });
+
     connect(popup, &Server::Resource::aboutToBeUnbound, this, &QWindow::close);
     connect(this, &AbstractProxyWindow::closed, popup, [popup]() {
         qDebug() << "popup done";
