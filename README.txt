@@ -1,17 +1,24 @@
 Out of process plasmoids
 
 Rollout plan:
-  - make bodge system for hosting random processes (DONE)
+  - make bodge system for hosting random processes as a demo (DONE) - 2017q4
+
+  - fix popups, use direct EGL (DONE) - 2018q2
 
   - make infra for hosting random custom content OOP in a proper organised way (WIP)
 
-  - make a process that mostly shoves existing content into this interface. (WIP)
+  - make a process that mostly shoves existing content into this interface.
+  (want to do it in this order, so we base design around what we want, not designing API for shimming existig stuff)
 
   - port some of our obscure kdeplasma-addons applet to use it (like binary-clock or something)
 
-  - deploy
+  - deploy that
 
-  - port our main applets
+  - fix up so that all our main plasmoids work (except maybe notifications)
+
+  - make plasmashell do this by default for store plasmoids (probably 2 years from now)
+
+  - replace plasmashell binary with a thinner client wrapper that only wraps external stuff? Plasma 6.0 material (easily 3-4 years from now)
 
   ====
 
@@ -23,7 +30,7 @@ A user-configurable plasmoid for running an arbitrary app wtih args and stuff an
 
  - plasmoid loader
 
- A fully fledged design of loading an applet out of process and embedding it
+ A fully fledged design of a daemon () that hosts a plasmoid and a wrapper plasmoid that shows it.
 
   =====
 
@@ -45,29 +52,25 @@ FactoryIface:
 PlasmoidIface:
  - set/getConfig
  - busy/title/whatever
- WaylandResourceId   visualWindow
- WaylandResourceId   configWindow
+ - visualWindow returning an ID to the wayland window
+ - configWindow(s)
+
+(dream plan: plasma scripting for all things also becomes out of process! Our scripts wrap relevant DBus calls)
+
+wayland window ID  will be some reference to the surface in clever magic way I've not decided upon (maybe xdg-foreign?)
+or maybe we just attach a name/id to the surface shell and match things up that way.
+
+Wayland surface to attach plasmoids (dream: replace xdg_toplevel  )
+
+two toplevels:
+    plasma_applet
+    plasma_config
 
 
-
- WaylandResourceId  will be some reference to the surface in clever magic way I've not decided upon
-
-
-
-----
-
-We need a
-
-Binary that hosts plasma applets from a hardcoded list
-Binary that hosts generic locally installed applet
-
-Could be the same thing, just we make a small script run on startup
-plasmoidHost org.kde.plasma.battery org.kde.plasma.taskmanager ......
-
-Inside our host, we should make it create the factory right away, but lazy load creating the actual applets.
+Config is interesting, as have the embedding KCMs in plasmoid conifgs, so we need to generate the host window in the shell (like it is now)
+remotely transfer a list of names + icons of config modules, and then embed those pages indivdually.
 
 
-Maybe inherit from XDG::TopLevel (but not XDGShellV6...would need Qt changes to do this)
 -----
 
 Design Goals:
@@ -82,9 +85,27 @@ Not necessarily because we actually want these things, but because it forces thi
 Avoid complexities of compact/full at a protocol level.
 We have a main view, that can create popups as windows. The applet host can do whatever it wants to make that happen
 
+KCMs out of process in systemsettings might become a thing, we need to keep abstract stuff abstract
+
 ----
 
 Open Questions:
 Who holds the config?
 Scripting?
 Config UI
+
+----
+
+FAQ:
+
+Does it work on X?
+Yes.
+
+Something something nvidia
+It's fine
+
+Why not an IVI shell approach?
+Won't work on X
+
+What's most problematic?
+bloody tooltips!

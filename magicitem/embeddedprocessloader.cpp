@@ -31,8 +31,10 @@ void EmbeddedProcessLoader::startProcess(const QString &exec, const QStringList 
     //FUTURE, watch process lifespan, maybe restart ?
 
     connect(Compositor::self(), &Compositor::newSurface, this, [=](KWayland::Server::XdgShellSurfaceInterface *ssi) {
-        //TODO if PID blah blah
-        if (ssi->client()->processId() != m_process->pid() && !surface()) {
+        if (surface()) {
+            return;
+        }
+        if (ssi->client()->processId() != m_process->pid()) {
             qDebug() << m_process->pid() << ssi->client()->processId();
             return;
         }
