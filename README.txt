@@ -101,7 +101,7 @@ FAQ:
 Does it work on X?
 Yes.
 
-Something something nvidia
+Something something nvidia?
 It's fine
 
 Why not an IVI shell approach?

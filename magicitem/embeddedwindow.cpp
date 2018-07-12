@@ -28,9 +28,11 @@ using namespace KWayland::Server;
 
 //maybe we mod QtWayland to cover this case.. it already has all this nonsense
 
-typedef GLboolean(*eglBindWaylandDisplayWL_func)(EGLDisplay dpy, wl_display *display);
-typedef GLboolean(*eglQueryWaylandBufferWL_func)(EGLDisplay dpy, struct wl_resource *buffer, EGLint attribute, EGLint *value);
-typedef EGLImageKHR (*eglCreateImageKHR_func) (EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
+typedef GLboolean(*eglBindWaylandDisplayWL_func) (EGLDisplay dpy, wl_display *display);
+typedef GLboolean(*eglQueryWaylandBufferWL_func) (EGLDisplay dpy, struct wl_resource *buffer, EGLint attribute, EGLint *value);
+typedef EGLImageKHR(*eglCreateImageKHR_func) (EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
+typedef GLboolean(*eglImageTargetTexture2DOES_func) (int, GLeglImageOES);
+
 
 #ifndef EGL_WAYLAND_BUFFER_WL
 #define EGL_WAYLAND_BUFFER_WL                   0x31D5
@@ -148,6 +150,7 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
         //      TODO only lookup once
        auto eglQueryWaylandBufferWL = (eglQueryWaylandBufferWL_func)eglGetProcAddress("eglQueryWaylandBufferWL");
        auto eglCreateImageKHR = (eglCreateImageKHR_func)eglGetProcAddress("eglCreateImageKHR");
+       auto glEGLImageTargetTexture2DOES = (eglImageTargetTexture2DOES_func)eglGetProcAddress("glEGLImageTargetTexture2DOES");
 
         glGenTextures(1, &newTexture);
         const EGLint attribs[] = {
