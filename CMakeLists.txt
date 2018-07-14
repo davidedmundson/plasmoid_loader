@@ -19,6 +19,7 @@ include(CheckIncludeFiles)
 
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
 Core
+DBus
 Quick
 X11Extras
 )
@@ -30,4 +31,4 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
 )
 
 add_subdirectory(magicitem)
-add_subdirectory(plasmoidloader)
+add_subdirectory(plasmoid_loader)

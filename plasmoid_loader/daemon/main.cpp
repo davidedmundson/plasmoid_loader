@@ -1,11 +1,11 @@
 #include <QApplication>
 #include <QDBusConnection>
-#include "appletfactory.h"
+#include "abstractappletfactory.h"
 
 int main(int argc, char** argv)
 {
-    QApplication app;
-    AppletFactory f;
-    QDBusConnection::sessionBus.registerService("org.plasma.provider.workspace");
+    QApplication app(argc, argv);
+    AbstractAppletFactory f;
+    QDBusConnection::sessionBus().registerService("org.plasma.provider.workspace");
     app.exec();
 }

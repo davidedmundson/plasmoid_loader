@@ -1,8 +1,8 @@
-#include "appletfactory.h"
+#include "abstractappletfactory.h"
 
 #include <QDBusConnection>
 
-AppletFactory::AppletFactory(QObject *parent):
+AbstractAppletFactory::AbstractAppletFactory(QObject *parent):
     QObject(parent)
 {
     m_id = "net.dave.awesomeApplet";
@@ -13,19 +13,19 @@ AppletFactory::AppletFactory(QObject *parent):
 
 }
 
-QDBusObjectPath AppletFactory::CreateApplet(int id)
+QDBusObjectPath AbstractAppletFactory::CreateApplet(int id)
 {
-    AppletWrapper applet = createApplet(id);
+    AbstractAppletFactory applet = createApplet(id);
     return applet->path();
 }
 
-AppletFactory::createApplet(int id)
+AbstractAppletFactory::createApplet(int id)
 {
     if (m_applet.contains(id))  {
 //         return m_applets[id]->path();
     }
 
-    auto applet = new AppletWrapper(int id, this);
+    auto applet = new AbstractAppletFactory(int id, this);
     m_applets.insert(id, applet);
     return applet->path();
 }
