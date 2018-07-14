@@ -1,8 +1,10 @@
+#pragma once
+
 #include <QObject>
 #include <QDBusObjectPath>
 #include <QHash>
 
-class AbstractAppletFactory;
+class AbstractAppletWrapper;
 
 //This class is responsible for creating new instances of *a* specifc applet id
 class AbstractAppletFactory: public QObject
@@ -16,10 +18,10 @@ public:
 
     //DAVE - this should be AbstractAppletFactory  with applet construction as a virtual call
     //Then Plasma 5 wrapper can do one thing, we can still have custom C++ and whatever
-    AbstractAppletFactory* createApplet(int id);
+    AbstractAppletWrapper* createApplet(int id);
 
 
 private:
     QString m_id;
-    QHash<int /*id*/, AbstractAppletFactory*> m_applets;
+    QHash<int /*id*/, AbstractAppletWrapper*> m_applets;
 };

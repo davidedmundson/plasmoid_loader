@@ -1,4 +1,7 @@
 #include "abstractappletfactory.h"
+#include "appletfactoryadaptor.h"
+
+#include "abstractappletwrapper.h"
 
 #include <QDBusConnection>
 
@@ -6,26 +9,29 @@ AbstractAppletFactory::AbstractAppletFactory(QObject *parent):
     QObject(parent)
 {
     m_id = "net.dave.awesomeApplet";
-//     m_id.replace('.', '_'); //are dots
+    m_id.replace('.', '_'); //are dots
 
     new AppletFactoryAdaptor(this);
-    QDBusConnection::sessionBus().registerObject("/Plamsa/Factory/" + m_id);
-
+    QDBusConnection::sessionBus().registerObject("/Plasma/Factory/" + m_id, this);
 }
 
-QDBusObjectPath AbstractAppletFactory::CreateApplet(int id)
+AbstractAppletFactory::~AbstractAppletFactory()
 {
-    AbstractAppletFactory applet = createApplet(id);
-    return applet->path();
 }
 
-AbstractAppletFactory::createApplet(int id)
+QDBusObjectPath AbstractAppletFactory::GetApplet(int id)
 {
-    if (m_applet.contains(id))  {
+    auto applet = createApplet(id);
+    return QDBusObjectPath(applet->path());
+}
+
+AbstractAppletWrapper* AbstractAppletFactory::createApplet(int id)
+{
+    if (m_applets.contains(id))  {
 //         return m_applets[id]->path();
     }
 
-    auto applet = new AbstractAppletFactory(int id, this);
+    auto applet = new AbstractAppletWrapper(id, this);
     m_applets.insert(id, applet);
-    return applet->path();
+    return applet;
 }

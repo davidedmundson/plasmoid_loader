@@ -2,7 +2,7 @@
 <node>
   <interface name="org.kde.plasma.AppletFactory">
 <!--       <annotation name="org.qtproject.QtDBus.QtTypeName.In6" value="QVariantMap"/> -->
-    <method name="CreateApplet">
+    <method name="GetApplet">
       <arg name="id" type="u" direction="in"/>
     </method>
     <!-- destroy applet -->
