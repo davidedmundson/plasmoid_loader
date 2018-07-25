@@ -8,6 +8,9 @@
 
 int main(int argc, char** argv)
 {
+    qputenv("QT_QPA_PLATFORM", "wayland");
+    qputenv("WAYLAND_DISPLAY", "plasma0");
+    qputenv("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1");
     QApplication app(argc, argv);
 
     QStringList applets = {"org.kde.plasma.digitalclock", "org.kde.plasma.analogclock", "org.kde.plasma.notes"};

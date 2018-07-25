@@ -9,10 +9,11 @@ AbstractAppletFactory::AbstractAppletFactory(const QString &id, QObject *parent)
     QObject(parent),
     m_id(id)
 {
-    m_id.replace('.', '_'); //are dots
+    QString path = id;
+    path.replace('.', '_'); //are dots
 
     new AppletFactoryAdaptor(this);
-    QDBusConnection::sessionBus().registerObject("/Plasma/Factory/" + m_id, this);
+    QDBusConnection::sessionBus().registerObject("/Plasma/Factory/" + path, this);
 }
 
 AbstractAppletFactory::~AbstractAppletFactory()

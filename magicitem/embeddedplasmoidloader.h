@@ -6,11 +6,16 @@
 //it is responsible for launching a plasmoid over our DBus interface and handling relevant
 //plasmoid specific things
 
+
+//long term, maybe this shouldn't exist, we make our wrapper C++ and have this as the _graphics_item?
+
 class EmbeddedPlasmoidLoader: public SurfaceItem
 {
     Q_OBJECT
 public:
     EmbeddedPlasmoidLoader(QQuickItem *parent = nullptr);
+    Q_INVOKABLE void setTargetPlugin(const QString &targetPlugin);
 
 private:
+
 };
