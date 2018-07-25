@@ -12,10 +12,22 @@
 class EmbeddedPlasmoidLoader: public SurfaceItem
 {
     Q_OBJECT
+    Q_PROPERTY(qreal minimumWidth READ minimumWidth NOTIFY minimumSizeChanged)
+    Q_PROPERTY(qreal minimumHeight READ minimumHeight NOTIFY minimumSizeChanged)
+
 public:
     EmbeddedPlasmoidLoader(QQuickItem *parent = nullptr);
     Q_INVOKABLE void setTargetPlugin(const QString &targetPlugin);
 
+    qreal minimumWidth() const;
+    qreal minimumHeight() const;
+signals:
+    void minimumSizeChanged();
 private:
+    void setContents(KWayland::Server::XdgShellSurfaceInterface *shell);
+
+private:
+    KWayland::Server::XdgShellSurfaceInterface *m_shell;
+    QSize m_minSize;
 
 };

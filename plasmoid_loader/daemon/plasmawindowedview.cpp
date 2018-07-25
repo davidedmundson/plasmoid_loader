@@ -89,25 +89,24 @@ void PlasmaWindowedView::setApplet(Plasma::Applet *applet)
         connect(m_layout, SIGNAL(minimumWidthChanged()), this, SLOT(minimumWidthChanged()));
         connect(m_layout, SIGNAL(minimumHeightChanged()), this, SLOT(minimumHeightChanged()));
     }
+    qDebug() << "layout!!??" << m_layout;
+
     minimumWidthChanged();
     minimumHeightChanged();
+
+
+    m_appletInterface->setSize(size());
+    contentItem()->setSize(size());
 }
 
 void PlasmaWindowedView::resizeEvent(QResizeEvent *ev)
 {
-    if (!m_applet) {
-        return;
-    }
-    qDebug() << "resize event" << ev->size();
-
-    QQuickItem *i = m_applet->property("_plasma_graphicObject").value<QQuickItem *>();
-    if (!i) {
+    if (!m_applet || !m_appletInterface) {
         return;
     }
 
-    i->setSize(ev->size());
+    m_appletInterface->setSize(ev->size());
     contentItem()->setSize(ev->size());
-    qDebug() << "applied";
 }
 
 
@@ -143,6 +142,9 @@ void PlasmaWindowedView::minimumWidthChanged()
     if (!m_layout || !m_appletInterface) {
         return;
     }
+    qDebug() << "minSize" << m_layout->property("minimumWidth").toInt();
+
+
     setMinimumWidth(m_layout->property("minimumWidth").toInt());
 }
 

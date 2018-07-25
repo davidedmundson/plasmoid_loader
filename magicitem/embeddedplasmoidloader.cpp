@@ -13,13 +13,7 @@ EmbeddedPlasmoidLoader::EmbeddedPlasmoidLoader(QQuickItem *parent)
         if (surface()) {
             return;
         }
-        setSurface(ssi->surface());
-        ssi->configure(0, size().toSize());
-        Compositor::self()->registerContainer(this, ssi->surface());
-
-        connect(this, &SurfaceItem::sizeChanged, ssi, [=]() {
-            ssi->configure(0, size().toSize());
-        });
+        setContents(ssi);
     });
 }
 
@@ -34,3 +28,34 @@ void EmbeddedPlasmoidLoader::setTargetPlugin(const QString &targetPlugin)
     auto reply = factory.GetApplet(1);
     qDebug() << reply.isError();
 }
+
+qreal EmbeddedPlasmoidLoader::minimumWidth() const
+{
+    return m_minSize.width();
+}
+
+qreal EmbeddedPlasmoidLoader::minimumHeight() const
+{
+    return m_minSize.height();
+}
+
+void EmbeddedPlasmoidLoader::setContents(KWayland::Server::XdgShellSurfaceInterface *shell)
+{
+    m_shell = shell;
+    setSurface(shell->surface());
+    Compositor::self()->registerContainer(this, shell->surface());
+
+    connect(this, &SurfaceItem::sizeChanged, shell, [=]() {
+        m_shell->configure(0, size().toSize());
+    });
+    connect(shell, &KWayland::Server::XdgShellSurfaceInterface::minSizeChanged, this, [=](const QSize &size) {
+        m_minSize = size;
+        qDebug() << "minimum size == " << m_minSize;
+        emit minimumSizeChanged();
+    });
+
+    shell->configure(0, size().toSize());
+    emit minimumSizeChanged();
+}
+
+
