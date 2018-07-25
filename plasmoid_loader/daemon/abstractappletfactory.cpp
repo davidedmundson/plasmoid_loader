@@ -5,10 +5,10 @@
 
 #include <QDBusConnection>
 
-AbstractAppletFactory::AbstractAppletFactory(QObject *parent):
-    QObject(parent)
+AbstractAppletFactory::AbstractAppletFactory(const QString &id, QObject *parent):
+    QObject(parent),
+    m_id(id)
 {
-    m_id = "net.dave.awesomeApplet";
     m_id.replace('.', '_'); //are dots
 
     new AppletFactoryAdaptor(this);

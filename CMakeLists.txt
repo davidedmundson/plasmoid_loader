@@ -27,7 +27,11 @@ X11Extras
 set(KF5_MIN_VERSION "5.2.0")
 find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
     Wayland
+    Package
+    I18n
+    Config
     WindowSystem
+    Plasma
 )
 
 add_subdirectory(magicitem)

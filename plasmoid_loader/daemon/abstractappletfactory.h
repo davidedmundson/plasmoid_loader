@@ -10,7 +10,7 @@ class AbstractAppletWrapper;
 class AbstractAppletFactory: public QObject
 {
 public:
-    AbstractAppletFactory(QObject *parent = nullptr);
+    AbstractAppletFactory(const QString &name, QObject *parent = nullptr);
     ~AbstractAppletFactory();
 
     //DBus invoked
@@ -18,8 +18,9 @@ public:
 
     //DAVE - this should be AbstractAppletFactory  with applet construction as a virtual call
     //Then Plasma 5 wrapper can do one thing, we can still have custom C++ and whatever
-    AbstractAppletWrapper* createApplet(int id);
+    virtual AbstractAppletWrapper* createApplet(int id);
 
+    QString id() const {return m_id;}
 
 private:
     QString m_id;
