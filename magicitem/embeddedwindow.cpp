@@ -141,7 +141,8 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
 
     if (b->shmBuffer()) {
         glGenTextures(1, &newTexture);
-        auto image = b->data();;
+        auto image = b->data();
+        image.save("/tmp/foo.png");
         glBindTexture( GL_TEXTURE_2D, newTexture);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.size().width(), image.size().height(), 0,
@@ -171,7 +172,7 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
     }
 
     if (newTexture) {
-        QSGTexture *source = window()->createTextureFromId(newTexture, m_size);
+        QSGTexture *source = window()->createTextureFromId(newTexture, m_size, QQuickWindow::TextureHasAlphaChannel);
         source->setFiltering(QSGTexture::Linear);
         currentNode->setTexture(source);
         currentNode->setOwnsTexture(true);

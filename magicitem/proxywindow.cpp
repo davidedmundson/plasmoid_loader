@@ -52,7 +52,11 @@ TopLevelProxyWindow::TopLevelProxyWindow(KWayland::Server::XdgShellSurfaceInterf
     connect(m_surfaceItem, &SurfaceItem::sizeChanged, this, [this, toplevel]() {
         toplevel->configure(0, m_surfaceItem->size().toSize());
     });
-    toplevel->configure(0, m_surfaceItem->size().toSize());
+    connect(this, &AbstractProxyWindow::closed, toplevel, [toplevel]() {
+        qDebug() << "toplevel done";
+//        toplevel->close();
+    });
+//    toplevel->configure(0, m_surfaceItem->size().toSize());
 }
 
 PopupProxyWindow::PopupProxyWindow(KWayland::Server::XdgShellPopupInterface *popup)

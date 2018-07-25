@@ -16,6 +16,10 @@ EmbeddedPlasmoidLoader::EmbeddedPlasmoidLoader(QQuickItem *parent)
         setSurface(ssi->surface());
         ssi->configure(0, size().toSize());
         Compositor::self()->registerContainer(this, ssi->surface());
+
+        connect(this, &SurfaceItem::sizeChanged, ssi, [=]() {
+            ssi->configure(0, size().toSize());
+        });
     });
 }
 
