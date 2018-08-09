@@ -40,19 +40,21 @@ signals:
     void hasBufferChanged(bool hasBuffer);
     void sizeChanged();
 protected:
-    virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
-    virtual void hoverMoveEvent(QHoverEvent *event) override;
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void keyPressEvent(QKeyEvent *event);
-    void keyReleaseEvent(QKeyEvent *event);
-    void wheelEvent(QWheelEvent *event);
+    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
+    void hoverMoveEvent(QHoverEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
 
     QPointer<KWayland::Server::SurfaceInterface> m_si;
 private:
     bool m_hasBuffer = false;
     QElapsedTimer m_timer;
-    QSize m_size;
+    QSize m_minSize;
 };
 
 // class EmbeddedWindow: public SurfaceItem, public Container

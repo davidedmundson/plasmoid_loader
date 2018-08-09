@@ -36,3 +36,4 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
 
 add_subdirectory(magicitem)
 add_subdirectory(plasmoid_loader)
+plasma_install_package(embed_window_plasmoid net.davidedmundson.embedcontent)

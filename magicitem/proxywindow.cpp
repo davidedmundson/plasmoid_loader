@@ -46,8 +46,8 @@ TopLevelProxyWindow::TopLevelProxyWindow(KWayland::Server::XdgShellSurfaceInterf
 
     connect(toplevel, &Server::Resource::aboutToBeUnbound, this, &QWindow::close);
 
-    setTitle(toplevel->title());
-    connect(toplevel, &Server::XdgShellSurfaceInterface::titleChanged, this, &QWindow::setTitle);
+    setTitle(toplevel->title() + "(Proxy)");
+//     connect(toplevel, &Server::XdgShellSurfaceInterface::titleChanged, this, &QWindow::setTitle);
 
     connect(m_surfaceItem, &SurfaceItem::sizeChanged, this, [this, toplevel]() {
         toplevel->configure(0, m_surfaceItem->size().toSize());

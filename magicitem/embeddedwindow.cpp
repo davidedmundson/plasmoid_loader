@@ -98,7 +98,7 @@ void SurfaceItem::setSurface(SurfaceInterface *si)
         setWidth(si->buffer()->size().width());
         setHeight(si->buffer()->size().height());
 
-        m_size = si->buffer()->size();
+        m_minSize = si->buffer()->size();
         update();
 
        si->resetTrackedDamage();
@@ -172,12 +172,12 @@ QSGNode* SurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)
     }
 
     if (newTexture) {
-        QSGTexture *source = window()->createTextureFromId(newTexture, m_size, QQuickWindow::TextureHasAlphaChannel);
+        QSGTexture *source = window()->createTextureFromId(newTexture, m_minSize, QQuickWindow::TextureHasAlphaChannel);
         source->setFiltering(QSGTexture::Linear);
         currentNode->setTexture(source);
         currentNode->setOwnsTexture(true);
 
-        const QRect destRect(QPointF(boundingRect().center() - QPointF(m_size.width(), m_size.height()) / 2).toPoint(), m_size);
+        const QRect destRect(QPointF(boundingRect().center() - QPointF(m_minSize.width(), m_minSize.height()) / 2).toPoint(), m_minSize);
         currentNode->setRect(destRect);
 
         if (m_si) {
@@ -211,6 +211,15 @@ void SurfaceItem::mousePressEvent(QMouseEvent *event)
     m_seat->setTimestamp(event->timestamp());
     m_seat->setPointerPos(event->pos());
     m_seat->pointerButtonPressed(event->button());
+}
+
+void SurfaceItem::mouseMoveEvent(QMouseEvent *event)
+{
+    if (Compositor::self()->activeClient() != m_si) {
+        return;
+    }
+    m_seat->setTimestamp(event->timestamp());
+    m_seat->setPointerPos(event->pos());
 }
 
 void SurfaceItem::mouseReleaseEvent(QMouseEvent *event)
